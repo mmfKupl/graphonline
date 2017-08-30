@@ -6,9 +6,63 @@
     <title>Graph Online</title>
     <script src="main.js"></script>
     <script src="UI.js"></script>
+    <script src="APP.js"></script>
+    <script src="graph.js"></script>
+
 </head>
 <body>
-    <div class="menu"></div>
+    <div class="menu" id="menu">
+        <div class="menu__item" id="currencies">
+            <ul class="submenu">
+                <li><p>oil</p></li>
+                <li><p>gold</p></li>
+                <li><p>US dollar</p></li>
+                <li><p>euro</p></li>
+                <li><p>pound sterling</p></li>
+                <li><p>canadian dollar</p></li>
+                <li><p>australian dollar</p></li>
+                <li><p>bitcoin</p></li>
+            </ul>
+        </div>
+        <div class="menu__item" id="timeFrame">
+            <ul class="submenu">
+                <li><p>M1</p></li>
+                <li><p>M5</p></li>
+                <li><p>M10</p></li>
+                <li><p>M15</p></li>
+                <li><p>M30</p></li>
+                <li><p>M60</p></li>
+                <li><p>H4</p></li>
+                <li><p>D1</p></li>
+            </ul>
+        </div>
+        <div class="menu__item" id="typeOfGraph">
+            <ul class="submenu">
+                <li><p>Footprint</p></li>
+                <li><p>Delta</p></li>
+            </ul>
+        </div>
+        <div class="menu__item" id="visualSettings"></div>
+        <div class="menu__item" id="graphicalElements">
+            <ul class="submenu">
+                <li><p>oil</p>
+                    <ul class="sub-submenu">
+                        <li><p>Horizontal line</p></li>
+                        <li><p>Vertical line</p></li>
+                        <li><p>Rectangle</p></li>
+                    </ul>
+                </li>
+                <li><p>gold</p>
+                    <ul class="sub-submenu">
+                        <li><p>Move</p></li>
+                        <li><p>Delete</p></li>
+                        <li><p>Clear all</p></li>
+                    </ul>
+                </li>
+            </ul>
+        </div>
+        <div class="menu__item" id="zoom"></div>
+    </div>
     <div class="graph">
         <canvas></canvas>
         <canvas></canvas>
