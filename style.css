@@ -28,17 +28,31 @@ html, body {
     border-top: solid #ffffff 1px;
 }
 
-.menu__item:hover{
+.menu__item:hover {
     border-bottom: solid #bfbfcc 1px;
     border-top: solid #bfbfcc 1px;
     cursor: pointer;
 }
 
 .submenu {
-    display: block;
     margin: 0;
     padding: 0;
     list-style: none;
+    position:absolute;
+    display:none;
+    left:52px;
+    background-color: white;
+}
+
+.submenu a{
+    text-decoration: none;
+    color: black;
+    width: 100%;
+    display: block;
+}
+
+.submenu li:hover{
+    background-color: #bfbfcc;
 }
 
 .submenu:after {
@@ -50,4 +64,8 @@ html, body {
 
 .graph {
     display: inline-flex;
+}
+
+.visible {
+    display: block;
 }

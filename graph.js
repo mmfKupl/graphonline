@@ -1,6 +1,6 @@
 "use strict";
 
-var Graph = {
+var graph = {
     getDimensions: function () {
         
     }    
