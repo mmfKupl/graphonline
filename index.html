@@ -2,71 +2,67 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <link href="style.css" rel="stylesheet">
-    <title>Graph Online</title>
-    <script src="main.js"></script>
-    <script src="UI.js"></script>
-    <script src="APP.js"></script>
-    <script src="graph.js"></script>
-
+    <title>Graph</title>
+    <link rel="stylesheet" href="style.css">
 </head>
 <body>
-    <div class="menu" id="menu">
-        <div class="menu__item" id="currencies">
-            <ul class="submenu" id="currenciesMenu">
-                <li><a id="OIL" href="#">oil</a></li>
-                <li><a id="GOLD" href="#">gold</a></li>
-                <li><a id="USD" href="#">US dollar</a></li>
-                <li><a id="EUR" href="#">euro</a></li>
-                <li><a id="GBR" href="#">pound sterling</a></li>
-                <li><a id="CAD" href="#">canadian dollar</a></li>
-                <li><a id="AUD" href="#">australian dollar</a></li>
-                <li><a id="BTC" href="#">bitcoin</a></li>
+<div class="menu">
+    <ul>
+        <li>
+            <div class="menu-item selected">
+                <div class="background-icon params"></div>
+            </div>
+            <div class="menu-item selected">
+                <div class="background-icon clock"></div>
+            </div>
+            <div class="menu-item selected">
+                <div class="background-icon tools"></div>
+            </div>
+            <div class="menu-item selected">
+                <div class="background-icon eye"></div>
+            </div>
+            <div class="menu-item selected">
+                <div class="background-icon note"></div>
+            </div>
+            <div class="menu-item selected">
+                <div class="background-icon info"></div>
+            </div>
+            <div class="menu-item bottom-item-first selected">
+                <div class="background-icon plus"></div>
+            </div>
+            <div class="menu-item bottom-item-second selected">
+                <div class="background-icon minus"></div>
+            </div>
+            <ul class="submenu">
+                <li>
+                    <div class="menu-text selected"><span>Выбор инструмента</span></div>
+                </li>
+                <li>
+                    <div class="menu-text selected"><span>Выбор таймфрейма</span></div>
+                </li>
+                <li>
+                    <div class="menu-text selected"><span>Выбор типа графика</span></div>
+                </li>
+                <li>
+                    <div class="menu-text selected"><span>Визуальные настройки</span></div>
+                </li>
+                <li>
+                    <div class="menu-text selected"><span>Графические элементы</span></div>
+                </li>
+                <li>
+                    <div class="menu-text selected"><span>О программе</span></div>
+                </li>
+                <li>
+                    <div class="menu-text selected"><span>Увеличить</span></div>
+                </li>
+                <li>
+                    <div class="menu-text selected"><span>Уменьшить</span></div>
+                </li>
             </ul>
-        </div>
-        <div class="menu__item" id="timeFrame">
-            <ul class="submenu" id="timeFrameMenu">
-                <li><a id="M1" href="#">M1</a></li>
-                <li><a id="M5" href="#">M5</a></li>
-                <li><a id="M10" href="#">M10</a></li>
-                <li><a id="M15" href="#">M15</a></li>
-                <li><a id="M30" href="#">M30</a></li>
-                <li><a id="M60" href="#">M60</a></li>
-                <li><a id="H4" href="#">H4</a></li>
-                <li><a id="D1" href="#">D1</a></li>
-            </ul>
-        </div>
-        <div class="menu__item" id="typeOfGraph">
-            <ul class="submenu" id="typeOfGraphMenu">
-                <li><a id="FOOTPRINT" href="#">Footprint</a></li>
-                <li><a id="DELTA" href="#">Delta</a></li>
-            </ul>
-        </div>
-        <div class="menu__item" id="visualSettings"></div>
-        <div class="menu__item" id="graphicalElements">
-            <!--<ul class="twin-submenu">-->
-                <!--<li><a href="#">oil</a>-->
-                    <!--<ul class="sub-submenu">-->
-                        <!--<li><a href="#">Horizontal line</a></li>-->
-                        <!--<li><a href="#">Vertical line</a></li>-->
-                        <!--<li><a href="#">Rectangle</a></li>-->
-                    <!--</ul>-->
-                <!--</li>-->
-                <!--<li><a href="#">gold</a>-->
-                    <!--<ul class="sub-submenu">-->
-                        <!--<li><a href="#">Move</a></li>-->
-                        <!--<li><a href="#">Delete</a></li>-->
-                        <!--<li><a href="#">Clear all</a></li>-->
-                    <!--</ul>-->
-                <!--</li>-->
-            <!--</ul>-->
-        </div>
-        <div class="menu__item" id="zoom"></div>
-    </div>
-    <div class="graph">
-        <canvas></canvas>
-        <canvas></canvas>
-        <canvas></canvas>
-    </div>
+        </li>
+    </ul>
+</div>
+<div class="graph">
+</div>
 </body>
 </html>
