@@ -6,24 +6,22 @@ html, body {
 }
 
 .menu {
+    position: relative;
     background-color: #333333;
     display: inline-block;
     vertical-align: top;
     height: calc(100vh - 13px);
+    width: 49px;
     padding-top: 13px;
+    overflow: hidden;
 }
 
-ul{
-    margin: 0;
-    padding: 0;
+.menu:hover{
+    width: 250px;
 }
 
-li{
-    list-style-type: none;
-}
-
-li:hover ul{
-  display: block;
+.menu:hover .menu-text{
+    display: inline-block;
 }
 
 .submenu{
@@ -35,6 +33,7 @@ li:hover ul{
 
 .menu-item {
     height: 40px;
+    width: 100%;
 }
 
 .selected{
@@ -66,36 +65,46 @@ li:hover ul{
     margin-top: 7px;
 }
 
+.menu-text{
+    display: none;
+    vertical-align: super;
+}
+
+.menu-text span{
+    color: #9B9B9B;
+    font-size: 13px;
+}
+
 .params {
-    background-image: url('icon/params.png');
+    background-image: url('../icon/params.png');
 }
 
 .clock {
-    background-image: url('icon/clock.png');
+    background-image: url('../icon/clock.png');
 }
 
 .tools {
-    background-image: url('icon/tools.png');
+    background-image: url('../icon/tools.png');
 }
 
 .eye {
-    background-image: url('icon/eye.png');
+    background-image: url('../icon/eye.png');
 }
 
 .note {
-    background-image: url('icon/note.png');
+    background-image: url('../icon/note.png');
 }
 
 .info {
-    background-image: url('icon/info.png');
+    background-image: url('../icon/info.png');
 }
 
 .plus {
-    background-image: url('icon/plus.png');
+    background-image: url('../icon/plus.png');
 }
 
 .minus {
-    background-image: url('icon/minus.png');
+    background-image: url('../icon/minus.png');
 }
 
 .graph {
