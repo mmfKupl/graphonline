@@ -73,7 +73,7 @@ html, body {
 
 .menu-text span{
     color: #9B9B9B;
-    font-size: 13px;
+    font-size: 14px;
 }
 
 .params {
@@ -112,4 +112,9 @@ html, body {
     display: inline-block;
     vertical-align: top;
     height: 100%;
+    width: auto;
+}
+
+canvas {
+
 }
