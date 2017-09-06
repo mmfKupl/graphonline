@@ -2,6 +2,11 @@
 'from': '2017-10-21 10:00:00',
 'candles': [{
 'finished': true|false,
-'start_price':1800.375
+'start_price':1800.375,
+'last_price':1801.425,
+'tick_price':1802.450,
+'ticks':[{
+
+}]
 }]
 }
