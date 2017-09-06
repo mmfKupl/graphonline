@@ -18,6 +18,7 @@ html, body {
 
 .menu:hover{
     width: 250px;
+    /*position: absolute;*/
 }
 
 .menu:hover .menu-text{

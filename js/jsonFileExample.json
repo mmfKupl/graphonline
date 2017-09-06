@@ -1,0 +1,7 @@
+{
+'from': '2017-10-21 10:00:00',
+'candles': [{
+'finished': true|false,
+'start_price':1800.375
+}]
+}
