@@ -168,7 +168,7 @@ FootPrintGraph.prototype.getSprites = function (f) {
     //      f(candleSprites);
     // )
 
-    var Sprites = [new CircleSprite(100342345234, 200, 35), new CircleSprite(482412342342, 842, 182)];
+    var Sprites = [new CircleSprite(10, 200, 35), new CircleSprite(10, 842, 182)];
     f(Sprites);
 };
 
