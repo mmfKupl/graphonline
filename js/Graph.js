@@ -35,6 +35,10 @@ Graph.prototype = {
         this.render();
     },
 
+    getDimensions: function () {
+
+    },
+
 
     render: function () {
         //очистка графика

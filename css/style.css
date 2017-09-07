@@ -109,10 +109,16 @@ html, body {
 }
 
 .graph {
+    z-index: 0;
+    top: 0;
+    left: 49px;
+    position: absolute;
     display: inline-block;
     vertical-align: top;
     height: 100%;
-    width: auto;
+    width: calc(100vw - 49px);
+    background-color: aqua;
+    padding: 0;
 }
 
 canvas {
