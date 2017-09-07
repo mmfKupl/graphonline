@@ -17,7 +17,7 @@ Graph.prototype = {
         this.GraphSettings = new GraphSettings();
         this.Canvas = Canvas;
         this.Ctx = this.Canvas.getContext("2d");
-
+        this.getDimensions();
 
         //навесить обработчики событий
         /*window.addEventListener('resize', ); //ctrl+'+'/'-'
@@ -36,7 +36,12 @@ Graph.prototype = {
     },
 
     getDimensions: function () {
-
+        var div = document.getElementsByClassName('graph')[0];
+        this.HEIGHT = div.height;
+        this.WIDTH = div.width;
+        console.log(div, this.HEIGHT, this.WIDTH)
+        this.Canvas.height = this.HEIGHT;
+        this.Canvas.widths = this.WIDTH;
     },
 
 
