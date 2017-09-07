@@ -27,7 +27,6 @@ Graph.prototype = {
         this.Canvas = canvas;
         this.Ctx = this.Canvas.getContext("2d");
         this.tmpCanvas = document.createElement('canvas');
-        console.log(this.tmpCanvas);
         this.tmpCtx = this.tmpCanvas.getContext('2d');
         this.getDimensions();
         this.render();
@@ -56,10 +55,8 @@ Graph.prototype = {
 
     resetCanvas: function () { //заливка холста
         console.log('resetCanvas');
-        // this.tmpCtx.fillStyle = '#ffffff';
-        // this.tmpCtx.fillRect(0, 0, this.GraphSettings.WIDTH, this.GraphSettings.HEIGHT);
-        this.Ctx.fillStyle = '#ffffff';
-        this.Ctx.fillRect(0, 0, this.GraphSettings.WIDTH, this.GraphSettings.HEIGHT);
+        this.tmpCtx.fillStyle = '#ffffff';
+        this.tmpCtx.fillRect(0, 0, this.GraphSettings.WIDTH, this.GraphSettings.HEIGHT);
     },
 
     buildData: function () {

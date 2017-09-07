@@ -118,7 +118,6 @@ html, body {
     vertical-align: top;
     height: 100%;
     width: calc(100vw - 49px);
-    background-color: aqua;
     padding: 0;
 }
 
