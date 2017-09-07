@@ -21,11 +21,13 @@ Graph.prototype = {
 
     Type: null,
 
-    init: function (Canvas) {
+    init: function (canvas) {
+        console.log('init');
         this.GraphSettings = new GraphSettings(1504786582926, 0, 0, 0.05, 0, 0, 0, 30, 0.5, 0, 5, 60);
-        this.Canvas = Canvas;
+        this.Canvas = canvas;
         this.Ctx = this.Canvas.getContext("2d");
         this.tmpCanvas = document.createElement('canvas');
+        console.log(this.tmpCanvas);
         this.tmpCtx = this.tmpCanvas.getContext('2d');
         this.getDimensions();
         this.render();
@@ -33,6 +35,7 @@ Graph.prototype = {
     },
 
     getDimensions: function () {
+        console.log('getDim');
         var div = document.getElementsByClassName('graph')[0];
         var styles = getComputedStyle(div);
         this.Canvas.height = parseInt(styles.height);
@@ -42,15 +45,17 @@ Graph.prototype = {
     },
 
     onResize: function () {
-        App.init();
+
     },
 
     render: function () {
-        Graph.prototype.resetCanvas(); //очистка графика
-        Graph.prototype.buildData(); //отрисовка графика
+        console.log('render');
+        this.resetCanvas(); //очистка графика
+        this.buildData(); //отрисовка графика
     },
 
     resetCanvas: function () { //заливка холста
+        console.log('resetCanvas');
         // this.tmpCtx.fillStyle = '#ffffff';
         // this.tmpCtx.fillRect(0, 0, this.GraphSettings.WIDTH, this.GraphSettings.HEIGHT);
         this.Ctx.fillStyle = '#ffffff';
@@ -58,9 +63,9 @@ Graph.prototype = {
     },
 
     buildData: function () {
-        Graph.prototype.buildSprites();//отрисовка графических объектов
-        Graph.prototype.drawMarks();//подписи меток на координатных осях
-        Graph.prototype.transferImgData(); //отрисовка временного холста на основной
+        this.buildSprites();//отрисовка графических объектов
+        this.drawMarks();//подписи меток на координатных осях
+        this.transferImgData(); //отрисовка временного холста на основной
     },
 
     buildSprites: function () {
@@ -74,9 +79,9 @@ Graph.prototype = {
             })
         });
 
-        Graph.prototype.drawAxes();//отрисовка осей
-        Graph.prototype.drawGrid();//отрисовка сетки
-        Graph.prototype.drawGridMarks();//отрисовка меток на координатных осях
+        this.drawAxes();//отрисовка осей
+        this.drawGrid();//отрисовка сетки
+        this.drawGridMarks();//отрисовка меток на координатных осях
     },
 
     drawAxes: function () {

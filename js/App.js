@@ -45,8 +45,8 @@ var App = {
         App.CurrentGraph = new FootPrintGraph();
         App.CurrentGraph.setTimeframe(App.Timeframe.M5);
         App.CurrentGraph.setInstrument(App.Instrument.GOLD);
-        var Canvas = document.getElementsByTagName("canvas")[0];
-        App.CurrentGraph.init(Canvas);
+        var canvas = document.getElementsByTagName("canvas")[0];
+        App.CurrentGraph.init(canvas);
 
     }
 };
