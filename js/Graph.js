@@ -39,6 +39,8 @@ Graph.prototype = {
         var styles = getComputedStyle(div);
         this.Canvas.height = parseInt(styles.height);
         this.Canvas.width = parseInt(styles.width);
+        this.tmpCanvas.height = parseInt(styles.height);
+        this.tmpCanvas.width = parseInt(styles.width);
         this.GraphSettings.HEIGHT = this.Canvas.height;
         this.GraphSettings.WIDTH = this.Canvas.width;
     },
@@ -83,6 +85,8 @@ Graph.prototype = {
             })
         });
 
+
+
         this.drawAxes();//отрисовка осей
         this.drawGrid();//отрисовка сетки
         this.drawGridMarks();//отрисовка меток на координатных осях
@@ -107,6 +111,7 @@ Graph.prototype = {
     transferImgData: function () {
         this.imgData = this.tmpCtx.getImageData(0, 0, this.GraphSettings.WIDTH, this.GraphSettings.HEIGHT);
         this.Ctx.putImageData(this.imgData, 0, 0);
+        //this.Ctx.strokeRect(135, 5, 50, 50);
     },
 
     // @Abstract
@@ -177,7 +182,7 @@ FootPrintGraph.prototype.getSprites = function (f) {
     //      f(candleSprites);
     // )
 
-    var Sprites = [new CircleSprite(300, 10, 32), new CircleSprite(600, 20, 98), new RectangleSprite(300, 50, 60, 40)];//new RectangleSprite(150, 150, 50, 50)
+    var Sprites = [new CircleSprite(300, 10, 32), new CircleSprite(600, 20, 98), new RectangleSprite(300, 50, 60, 40), new RectangleSprite(4050, 70, 50, 50)];//new RectangleSprite(150, 150, 50, 50)
     f(Sprites);
 };
 
@@ -282,7 +287,7 @@ RectangleSprite.prototype = {
         var _x = gs.getXCoordForTS(this.X);
         var _y = gs.getYCoordForPrice(this.Y);
 
-        ctx.strokeStyle = "blue";
+        ctx.strokeStyle = "green";
         ctx.strokeRect(_x, _y, this.width, this.height);
 
     }
