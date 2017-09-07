@@ -2,7 +2,7 @@
 
 var App = {
 
-    CURRENCIES: {
+    Instrument: {
         OIL: 'OIL',
         GOLD: 'GOLD',
         USD: 'USD',
@@ -13,7 +13,7 @@ var App = {
         BTC: 'BTC'
     },
 
-    TIMEFRAME: {
+    Timeframe: {
         M1: 'M1',
         M5: 'M5',
         M10: 'M10',
@@ -24,7 +24,7 @@ var App = {
         D1: 'D1'
     },
 
-    TYPEOFGRAPH: {
+    GraphType: {
         FOOTPRINT: 'FOOTPRINT',
         DELTA: 'DELTA'
     },
@@ -40,5 +40,17 @@ var App = {
     },
 
 
+    init: function(){
 
+        App.CurrentGraph = new FootPrintGraph();
+        App.CurrentGraph.setTimeframe(App.Timeframe.M5);
+        App.CurrentGraph.setInstrument(App.Instrument.GOLD);
+
+        var Canvas = $("canvas")[0];
+        App.CurrentGraph.init(Canvas);
+
+    }
 };
+
+
+window.onload = App.init;
