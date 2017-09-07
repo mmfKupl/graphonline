@@ -23,7 +23,7 @@ Graph.prototype = {
 
     init: function (canvas) {
         console.log('init');
-        this.GraphSettings = new GraphSettings(1504786582926, 0, 0, 0.05, 0, 0, 0, 30, 0.5, 0, 5, 60);
+        this.GraphSettings = new GraphSettings(0, 0, 0, 0.05, 0, 0, 0, 30, 0.5, 0, 5, 60);
         this.Canvas = canvas;
         this.Ctx = this.Canvas.getContext("2d");
         this.tmpCanvas = document.createElement('canvas');
@@ -68,11 +68,18 @@ Graph.prototype = {
     buildSprites: function () {
         //отрисовка графических эл-тов - т.е. вызов у каждого графического элемента своей функции отрисовки
 
-        var t = this;
+        // var t = this;
+        //
+        // t.getSprites(function (sprites) {
+        //     sprites.forEach(function (sprite) {
+        //         sprite.renderIfVisible(t.tmpCtx, t.GraphSettings);
+        //     })
+        // });
 
-        t.getSprites(function (sprites) {
+        var t = this;
+        App.CurrentGraph.getSprites(function (sprites) {
             sprites.forEach(function (sprite) {
-                sprite.renderIfVisible(t.Ctx, t.GraphSettings);
+                sprite.renderIfVisible(t.tmpCtx, t.GraphSettings);
             })
         });
 
@@ -104,7 +111,9 @@ Graph.prototype = {
 
     // @Abstract
     getSprites: function (f) {
-        f([]);
+        var sprites = [];
+
+        f(sprites);
     },
 
     //методы для обработки движения графика
@@ -124,22 +133,22 @@ Graph.prototype = {
 
     transform: function (q) {
         if (q.transform_TS) {
-            Graph.GraphSettings.Start_TS = q.transform_TS; // должно быть в зависимости от клавиши = +/-
+            this.GraphSettings.START_TS = q.transform_TS; // должно быть в зависимости от клавиши = +/-
         }
         // и так по каждому параметру
-        Graph.render();
+        this.render();
     },
 
     setStartTS: function (ts) {
-        Graph.GraphSettings.Start_TS = ts;
+        this.GraphSettings.START_TS = ts;
     },
 
     setScale: function (scale) {
-        Graph.GraphSettings.scale = scale;
+        this.GraphSettings.SCALE = scale;
     },
 
     setStartPrice: function (price) {
-        Graph.GraphSettings.Start_price;
+        this.GraphSettings.START_PRICE = price;
     }
 };
 
@@ -168,7 +177,7 @@ FootPrintGraph.prototype.getSprites = function (f) {
     //      f(candleSprites);
     // )
 
-    var Sprites = [new CircleSprite(10, 200, 35), new CircleSprite(10, 842, 182)];
+    var Sprites = [new CircleSprite(300, 10, 32), new CircleSprite(600, 20, 98), new RectangleSprite(300, 50, 60, 40)];//new RectangleSprite(150, 150, 50, 50)
     f(Sprites);
 };
 
@@ -218,26 +227,72 @@ var CircleSprite = function (x, y, r) {
 CircleSprite.prototype = {
     constructor: CircleSprite
     , isVisible: function (gs) {
-        var x_visible = ((this.x + this.r * gs.TIME_PER_PX >= gs.Start_TS) && (this.x - this.r * gs.TIME_PER_PX <= gs.getBorderTS()));
-        var y_visible = ((this.y + this.r * gs.PRICE_PER_PX >= gs.Start_price) && (this.y - this.r * gs.PRICE_PER_PX <= gs.getBorderPrice()));
+        var x_visible = ((this.X + this.r * gs.TIME_PER_PX >= gs.START_TS) && (this.X - this.r * gs.TIME_PER_PX <= gs.getBorderTS()));
+        var y_visible = ((this.Y + this.r * gs.PRICE_PER_PX >= gs.START_PRICE) && (this.Y - this.r * gs.PRICE_PER_PX <= gs.getBorderPrice()));
+        console.log('x_visible: ' + x_visible);
+        console.log('y_visible: ' + y_visible);
 
         return x_visible && y_visible;
     }
 
     , render: function (ctx, gs) {
 
-        var _x = gs.getXCoordForTS(this.x);
-        var _y = gs.getYCoordForPrice(this.y);
+        var _x = gs.getXCoordForTS(this.X);
+        var _y = gs.getYCoordForPrice(this.Y);
 
+        ctx.strokeStyle = 'red';
         ctx.beginPath();
         ctx.arc(_x, _y, this.r, 0, Math.PI * 2);
-        ctx.fill();
+        ctx.stroke();
+
 
     }
 
     , renderIfVisible: function (ctx, gs) {
         if (this.isVisible(gs)) {
             this.render(ctx, gs);
+        }
+        else {
+            console.log('nonVisible');
+        }
+    }
+};
+
+var RectangleSprite = function (x, y, width, height) {
+    this.X = x; //in seconds
+    this.Y = y; //in $
+    this.width = width; //in px
+    this.height = height; //in px
+};
+
+RectangleSprite.prototype = {
+    constructor: RectangleSprite,
+
+    isVisible: function (gs) {
+        var x_visible = ((this.X + (this.width * gs.TIME_PER_PX) >= gs.START_TS) && (this.X <= gs.getBorderTS()));
+        var y_visible = ((this.Y + (this.height * gs.PRICE_PER_PX) >= gs.START_PRICE) && (this.Y <= gs.getBorderPrice()));
+        console.log('x_visible: ' + x_visible);
+        console.log('y_visible: ' + y_visible);
+
+        return x_visible && y_visible;
+    },
+
+    render: function (ctx, gs) {
+
+        var _x = gs.getXCoordForTS(this.X);
+        var _y = gs.getYCoordForPrice(this.Y);
+
+        ctx.strokeStyle = "blue";
+        ctx.strokeRect(_x, _y, this.width, this.height);
+
+    }
+
+    , renderIfVisible: function (ctx, gs) {
+        if (this.isVisible(gs)) {
+            this.render(ctx, gs);
+        }
+        else {
+            console.log('nonVisible');
         }
     }
 };
@@ -263,18 +318,18 @@ var GraphSettings = function (start_ts, start_price, scale, price_step, speed_of
 GraphSettings.prototype = {
     constructor: GraphSettings
     , getBorderTS: function () {
-        return this.Start_TS + this.WIDTH * this.TIME_PER_PX;
+        return this.START_TS + this.WIDTH * this.TIME_PER_PX;
     }
 
     , getBorderPrice: function () {
-        return this.Start_price + this.HEIGHT * this.PRICE_PER_PX;
+        return this.START_PRICE + this.HEIGHT * this.PRICE_PER_PX;
     }
 
     , getXCoordForTS: function (n) {
-        return (n - this.Start_TS) / this.TIME_PER_PX;
+        return (n - this.START_TS) / this.TIME_PER_PX;
     }
 
     , getYCoordForPrice: function (n) {
-        return (n - this.Start_price) / this.PRICE_PER_PX;
+        return (n - this.START_PRICE) / this.PRICE_PER_PX;
     }
 };

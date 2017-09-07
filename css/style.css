@@ -122,5 +122,6 @@ html, body {
 }
 
 canvas {
+    z-index: 1;
     position: inherit;
 }
