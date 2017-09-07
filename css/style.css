@@ -6,6 +6,7 @@ html, body {
 }
 
 .menu {
+    z-index: 1;
     position: relative;
     background-color: #333333;
     display: inline-block;
@@ -122,5 +123,5 @@ html, body {
 }
 
 canvas {
-
+    position: inherit;
 }

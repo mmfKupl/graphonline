@@ -2,69 +2,107 @@
 
 var Graph = function () {
 };
+
 Graph.prototype = {
 
-
     constructor: Graph,
-    GraphSettings: null,
 
-    Ctx: null, //Ctx
+    GraphSettings: null,
 
     Canvas: null, // DOM Element Canvas
 
+    tmpCanvas: null,
+
+    Ctx: null, //Ctx
+
+    tmpCtx: null,
+
+    imgData: null,
+
     Type: null,
-    init: function (Canvas) { //
-        this.GraphSettings = new GraphSettings();
+
+    init: function (Canvas) {
+        this.GraphSettings = new GraphSettings(1504786582926, 0, 0, 0.05, 0, 0, 0, 30, 0.5, 0, 5, 60);
         this.Canvas = Canvas;
         this.Ctx = this.Canvas.getContext("2d");
+        this.tmpCanvas = document.createElement('canvas');
+        this.tmpCtx = this.tmpCanvas.getContext('2d');
         this.getDimensions();
-
-        //навесить обработчики событий
-        /*window.addEventListener('resize', ); //ctrl+'+'/'-'
-        window.addEventListener('keydown', ); //нажатие клавиши
-        window.addEventListener('keydown', Graph.move); //нажатие клавиши
-        window.addEventListener('mousedown', ); //нажатие кнопки мыши
-        window.addEventListener('mouseup', ); //отпускание кнопки мыши
-        window.addEventListener('mousemove', ); //движение мыши
-        window.addEventListener('wheel', ); //колесико мыши
-        window.addEventListener('dblclick', ); //даблклик мыши
-        window.addEventListener('touchstart', ); //тык пальцем по экрану
-        window.addEventListener('touchend', ); //отрыв пальчика от экрана
-        window.addEventListener('touchmove', ); //движение пальчиком по экрану*/
-
         this.render();
+        window.addEventListener('resize', this.onResize);
     },
 
     getDimensions: function () {
         var div = document.getElementsByClassName('graph')[0];
-        this.HEIGHT = div.height;
-        this.WIDTH = div.width;
-        console.log(div, this.HEIGHT, this.WIDTH)
-        this.Canvas.height = this.HEIGHT;
-        this.Canvas.widths = this.WIDTH;
+        var styles = getComputedStyle(div);
+        this.Canvas.height = parseInt(styles.height);
+        this.Canvas.width = parseInt(styles.width);
+        this.GraphSettings.HEIGHT = this.Canvas.height;
+        this.GraphSettings.WIDTH = this.Canvas.width;
     },
 
+    onResize: function () {
+        App.init();
+    },
 
     render: function () {
-        //очистка графика
-        //отрисовка осей
+        Graph.prototype.resetCanvas(); //очистка графика
+        Graph.prototype.buildData(); //отрисовка графика
+    },
+
+    resetCanvas: function () { //заливка холста
+        // this.tmpCtx.fillStyle = '#ffffff';
+        // this.tmpCtx.fillRect(0, 0, this.GraphSettings.WIDTH, this.GraphSettings.HEIGHT);
+        this.Ctx.fillStyle = '#ffffff';
+        this.Ctx.fillRect(0, 0, this.GraphSettings.WIDTH, this.GraphSettings.HEIGHT);
+    },
+
+    buildData: function () {
+        Graph.prototype.buildSprites();//отрисовка графических объектов
+        Graph.prototype.drawMarks();//подписи меток на координатных осях
+        Graph.prototype.transferImgData(); //отрисовка временного холста на основной
+    },
+
+    buildSprites: function () {
+        //отрисовка графических эл-тов - т.е. вызов у каждого графического элемента своей функции отрисовки
 
         var t = this;
 
-        this.getSprites(function (sprites) {
+        t.getSprites(function (sprites) {
             sprites.forEach(function (sprite) {
                 sprite.renderIfVisible(t.Ctx, t.GraphSettings);
             })
-        })
+        });
+
+        Graph.prototype.drawAxes();//отрисовка осей
+        Graph.prototype.drawGrid();//отрисовка сетки
+        Graph.prototype.drawGridMarks();//отрисовка меток на координатных осях
+    },
+
+    drawAxes: function () {
+
+    },
+
+    drawGrid: function () {
+
+    },
+
+    drawGridMarks: function () {
+
+    },
+
+    drawMarks: function () { //подписи на меток координатных осях
+
+    },
+
+    transferImgData: function () {
+        this.imgData = this.tmpCtx.getImageData(0, 0, this.GraphSettings.WIDTH, this.GraphSettings.HEIGHT);
+        this.Ctx.putImageData(this.imgData, 0, 0);
     },
 
     // @Abstract
     getSprites: function (f) {
         f([]);
-    },
-
-    setTimeFrame: function () {
-
     },
 
     //методы для обработки движения графика
@@ -104,9 +142,20 @@ Graph.prototype = {
 };
 
 var FootPrintGraph = function () {
+    this.timeFrame = null;
+    this.instrument = null;
 };
+
 FootPrintGraph.prototype = new Graph();
 FootPrintGraph.prototype.type = App.GraphType.FOOTPRINT;
+FootPrintGraph.prototype.setTimeframe = function (timeframe) {
+    this.timeFrame = timeframe;
+};
+
+FootPrintGraph.prototype.setInstrument = function (instrument) {
+    this.instrument = instrument;
+};
+
 FootPrintGraph.prototype.getSprites = function (f) {
 
     // Data.getCandlesForInterval(ts, duration, function(candles){
@@ -119,11 +168,12 @@ FootPrintGraph.prototype.getSprites = function (f) {
 
     var Sprites = [new CircleSprite(100342345234, 200, 35), new CircleSprite(482412342342, 842, 182)];
     f(Sprites);
-}
+};
 
 
 var Sprite = function () {
 };
+
 Sprite.prototype = {
     constructor: Sprite
     , isVisible: function (GraphSettings) {
@@ -132,12 +182,13 @@ Sprite.prototype = {
     }
     , renderIfVisible: function (Ctx, GraphSettings) {
     }
-}
+};
 
 
 var CandleSprite = function (Candle) {
     this.Candle = Candle;
-}
+};
+
 CandleSprite.prototype = {
     constructor: CandleSprite
     , isVisible: function (gs) {
@@ -153,7 +204,7 @@ CandleSprite.prototype = {
             this.render(ctx, gs);
         }
     }
-}
+};
 
 
 var CircleSprite = function (x, y, r) {
@@ -161,6 +212,7 @@ var CircleSprite = function (x, y, r) {
     this.Y = y; // In $
     this.r = r; // In PX
 };
+
 CircleSprite.prototype = {
     constructor: CircleSprite
     , isVisible: function (gs) {
@@ -223,4 +275,4 @@ GraphSettings.prototype = {
     , getYCoordForPrice: function (n) {
         return (n - this.Start_price) / this.PRICE_PER_PX;
     }
-}
+};
