@@ -30,10 +30,11 @@ Graph.prototype = {
         this.tmpCtx = this.tmpCanvas.getContext('2d');
         this.getDimensions();
         this.render();
-        window.addEventListener('resize', this.onResize);
+        window.addEventListener('resize', this.onResize.bind(this));
     },
 
     getDimensions: function () {
+        console.log(this);
         console.log('getDim');
         var div = document.getElementsByClassName('graph')[0];
         var styles = getComputedStyle(div);
@@ -46,7 +47,8 @@ Graph.prototype = {
     },
 
     onResize: function () {
-
+        this.getDimensions();
+        this.render();
     },
 
     render: function () {
