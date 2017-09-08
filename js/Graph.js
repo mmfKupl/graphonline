@@ -23,7 +23,7 @@ Graph.prototype = {
 
     init: function (canvas) {
         console.log('init');
-        this.GraphSettings = new GraphSettings(0, 0, 0, 0.05, 0, 0, 0, 30, 0.5, 0, 5, 60);
+        this.GraphSettings = new GraphSettings(0, 0, 0, 0.05, 0, 0, 0, 30, 0.5, 0, 5, 60, 60, 40, 130, 80);
         this.Canvas = canvas;
         this.Ctx = this.Canvas.getContext("2d");
         this.tmpCanvas = document.createElement('canvas');
@@ -65,7 +65,7 @@ Graph.prototype = {
 
     buildData: function () {
         this.buildSprites();//отрисовка графических объектов
-        this.drawMarks();//подписи меток на координатных осях
+        this.drawMarks(this.tmpCtx, this.GraphSettings);//подписи меток на координатных осях
         this.transferImgData(); //отрисовка временного холста на основной
     },
 
@@ -88,25 +88,103 @@ Graph.prototype = {
         });
 
 
-
-        this.drawAxes();//отрисовка осей
-        this.drawGrid();//отрисовка сетки
-        this.drawGridMarks();//отрисовка меток на координатных осях
+        this.drawGrid(t.tmpCtx, t.GraphSettings);//отрисовка сетки
+        this.drawAxes(t.tmpCtx, t.GraphSettings);//отрисовка осей
+        this.drawGridMarks(t.tmpCtx, t.GraphSettings);//отрисовка меток на координатных осях
     },
 
-    drawAxes: function () {
+    drawAxes: function (ctx, gs) {
+        var realY0 = gs.realY(0) + 0.5,
+            width = gs.WIDTH,
+            bottom_ident = gs.BOTTOM_IDENT,
+            right_ident = gs.RIGHT_IDENT;
+        ctx.strokeStyle = '#000000';
+        ctx.lineWidth = 1;
+        ctx.beginPath();
+        ctx.moveTo(0.5, realY0);
+        ctx.lineTo(width - right_ident + 0.5, realY0);
+        ctx.lineTo(width - right_ident + 0.5, 0.5);
+        ctx.stroke();
+    },
+
+    drawGrid: function (ctx, gs) {
+        var realY0 = gs.realY(0) + 0.5,
+            lengthX = gs.WIDTH - gs.RIGHT_IDENT,
+            lengthY = gs.HEIGHT - gs.BOTTOM_IDENT,
+            stepX = gs.STEP_X, stepY = gs.STEP_Y,
+            xp8 = lengthX + 8.5,
+            cur_pos = 0.5;//gs.calculateSectionsOnX();
+        ctx.strokeStyle = '#c8c8c8';
+        ctx.lineWidth = 1;
+        ctx.beginPath();
+        while (cur_pos < lengthX) {
+            ctx.moveTo(cur_pos, realY0);
+            ctx.lineTo(cur_pos, 0.5);
+            cur_pos += stepX;
+        }
+        cur_pos = 0.5;
+        while (cur_pos < lengthY) {
+            ctx.moveTo(0.5, gs.realY(cur_pos));
+            ctx.lineTo(xp8, gs.realY(cur_pos));
+            cur_pos += stepY;
+        }
+        ctx.stroke();
+    },
+
+    drawGridMarks: function (ctx, gs) {
+        var realY0 = gs.realY(0) + 0.5,
+            realYm8 = gs.realY(-8) + 0.5,
+            lengthX = gs.WIDTH - gs.RIGHT_IDENT,
+            lengthY = gs.HEIGHT - gs.BOTTOM_IDENT,
+            stepX = gs.STEP_X, stepY = gs.STEP_Y,
+            xp8 = lengthX + 8.5,
+            cur_pos = stepX / 2 + 0.5;
+        ctx.strokeStyle = '#000000';
+        ctx.lineWidth = 1;
+        ctx.beginPath();
+        while (cur_pos < lengthX) {
+            ctx.moveTo(cur_pos, realY0);
+            ctx.lineTo(cur_pos, realYm8);
+            cur_pos += stepX;
+        }
+        cur_pos = 0.5;
+        while (cur_pos < lengthY) {
+            ctx.moveTo(lengthX, gs.realY(cur_pos));
+            ctx.lineTo(xp8, gs.realY(cur_pos));
+            cur_pos += stepY;
+        }
+        ctx.stroke();
 
     },
 
-    drawGrid: function () {
+    drawMarks: function (ctx, gs) { //подписи на меток координатных осях
+        var realY0 = gs.realY(0) + 0.5,
+            realYm12 = gs.realY(-18) + 0.5,
+            lengthX = gs.WIDTH - gs.RIGHT_IDENT,
+            lengthY = gs.HEIGHT - gs.BOTTOM_IDENT,
+            stepX = gs.STEP_X, stepY = gs.STEP_Y,
+            xp12 = lengthX + 12.5,
+            cur_pos = stepX / 2 + 0.5;
+        ctx.fillStyle = '#000000';
+        ctx.font = '14px Arial';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        while (cur_pos < lengthX){
+            ctx.fillText(cur_pos, cur_pos, realYm12);
+            cur_pos += stepX;
+        }
+        cur_pos = 0.5;
+        ctx.textAlign = 'left';
+        //if (Graph.START_UNITS > 0)
+        //    cur_pos += (Graph.UNITS_PER_PIXEL * Graph.PX_PER_POINT);
+        //console.log(cur_pos_Y+"="+Graph.START_UNITS+"+"+cur_pos+"*"+Graph.UNITS_PER_PIXEL, Graph.START_UNITS);
+        while (cur_pos < lengthY) {
+            ctx.fillText(cur_pos, xp12, gs.realY(cur_pos));
+            cur_pos += stepY;
+        }
 
-    },
 
-    drawGridMarks: function () {
 
-    },
-
-    drawMarks: function () { //подписи на меток координатных осях
 
     },
 
@@ -244,12 +322,12 @@ CircleSprite.prototype = {
 
     , render: function (ctx, gs) {
 
-        var _x = gs.getXCoordForTS(this.X);
-        var _y = gs.getYCoordForPrice(this.Y);
+        var _x = gs.getXCoordForTS(this.X) + 0.5;
+        var _y = gs.getYCoordForPrice(this.Y) + 0.5;
 
         ctx.strokeStyle = 'red';
         ctx.beginPath();
-        ctx.arc(_x, _y, this.r, 0, Math.PI * 2);
+        ctx.arc(_x, _y, this.r + 0.5, 0, Math.PI * 2);
         ctx.stroke();
 
 
@@ -286,8 +364,8 @@ RectangleSprite.prototype = {
 
     render: function (ctx, gs) {
 
-        var _x = gs.getXCoordForTS(this.X);
-        var _y = gs.getYCoordForPrice(this.Y);
+        var _x = gs.getXCoordForTS(this.X) + 0.5;
+        var _y = gs.getYCoordForPrice(this.Y) + 0.5;
 
         ctx.strokeStyle = "green";
         ctx.strokeRect(_x, _y, this.width, this.height);
@@ -305,7 +383,7 @@ RectangleSprite.prototype = {
 };
 
 
-var GraphSettings = function (start_ts, start_price, scale, price_step, speed_of_moving_graph, width, height, time_per_px, price_per_px, timeframe, price_points, min_px_per_detailed_candle) {
+var GraphSettings = function (start_ts, start_price, scale, price_step, speed_of_moving_graph, width, height, time_per_px, price_per_px, timeframe, price_points, min_px_per_detailed_candle, right_ident, bottom_ident, step_x, step_y) {
 
     this.START_TS = start_ts;
     this.START_PRICE = start_price;
@@ -319,17 +397,21 @@ var GraphSettings = function (start_ts, start_price, scale, price_step, speed_of
     this.TIMEFRAME = timeframe;
     this.PRICE_POINTS = price_points;
     this.MIN_PX_PER_DETEILED_CANDLE = min_px_per_detailed_candle;
+    this.RIGHT_IDENT = right_ident;
+    this.BOTTOM_IDENT = bottom_ident;
+    this.STEP_X = step_x;
+    this.STEP_Y = step_y;
 
 };
 
 GraphSettings.prototype = {
     constructor: GraphSettings
     , getBorderTS: function () {
-        return this.START_TS + this.WIDTH * this.TIME_PER_PX;
+        return this.START_TS + (this.WIDTH - this.RIGHT_IDENT) * this.TIME_PER_PX;
     }
 
     , getBorderPrice: function () {
-        return this.START_PRICE + this.HEIGHT * this.PRICE_PER_PX;
+        return this.START_PRICE + (this.HEIGHT - this.BOTTOM_IDENT) * this.PRICE_PER_PX;
     }
 
     , getXCoordForTS: function (n) {
@@ -338,5 +420,23 @@ GraphSettings.prototype = {
 
     , getYCoordForPrice: function (n) {
         return (n - this.START_PRICE) / this.PRICE_PER_PX;
+    }
+
+    , realY: function (y) {
+        return this.HEIGHT - this.BOTTOM_IDENT - y;
+    }
+
+    //вычисление первого отступа метки по ОX
+    , calculateSectionsOnX: function () {
+        return this.STEP_X - (this.START_TS % (this.TIME_PER_PX * this.STEP_X)) / this.TIME_PER_PX;
+    }
+
+    //вычисление первого отступа метки по OY
+    , calculateSectionsOnY: function () {
+        var s = Math.abs((this.START_PRICE % (this.PRICE_PER_PX * this.STEP_Y)) / this.PRICE_PER_PX);
+        if (this.START_PRICE > 0) {
+            s = this.STEP_Y - s;
+        }
+        return s;
     }
 };
