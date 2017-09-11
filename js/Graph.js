@@ -21,6 +21,8 @@ Graph.prototype = {
 
     Type: null,
 
+    mouseFlag: false,
+
     init: function (canvas) {
         console.log('init');
         this.GraphSettings = new GraphSettings(0, 0, 0, 0.05, 0, 0, 0, 30, 0.5, 0, 5, 60, 60, 40, 130, 80);
@@ -31,6 +33,17 @@ Graph.prototype = {
         this.getDimensions();
         this.render();
         window.addEventListener('resize', this.onResize.bind(this));
+        window.addEventListener('keydown', this.drag.bind(this));
+        var t = this;
+        window.addEventListener('mouseup', function (e) {
+            t.onUp(e, t.GraphSettings);
+        });
+        window.addEventListener('mousedown', function (e) {
+            t.onDown(e, t.GraphSettings);
+        });
+        window.addEventListener('mousemove', function (e) {
+            t.onMove(e, t.GraphSettings);
+        });
     },
 
     getDimensions: function () {
@@ -169,7 +182,7 @@ Graph.prototype = {
         ctx.font = '14px Arial';
         ctx.textAlign = 'center';
         ctx.textBaseline = 'middle';
-        while (cur_pos < lengthX){
+        while (cur_pos < lengthX) {
             ctx.fillText(cur_pos, cur_pos, realYm12);
             cur_pos += stepX;
         }
@@ -182,10 +195,6 @@ Graph.prototype = {
             ctx.fillText(cur_pos, xp12, gs.realY(cur_pos));
             cur_pos += stepY;
         }
-
-
-
-
     },
 
     transferImgData: function () {
@@ -199,6 +208,97 @@ Graph.prototype = {
         var sprites = [];
 
         f(sprites);
+    },
+
+    drag: function (e) {
+        var left = 37,
+            up = 38,
+            right = 39,
+            down = 40,
+            speed = this.SPEED_OF_MOVING_GRAPH;
+        switch (e.keyCode) {
+            case left :
+                //Graph.tmpX = (Graph.LAST_MS - Graph.START_MS);
+                console.log(e.keyCode);
+                this.START_TS -= speed * this.TIME_PER_PX;
+                this.render();
+                break;
+            case right :
+                //Graph.tmpX = (Graph.LAST_MS - Graph.START_MS);
+                // if (Graph.tmpX < Graph.controlLenght) {
+                //     Graph.render();
+                //     break;
+                // }
+                console.log(e.keyCode);
+
+                this.START_TS += speed * this.TIME_PER_PX;
+                this.render();
+                break;
+            case up :
+                console.log(e.keyCode);
+
+                this.START_PRICE += speed * this.PRICE_PER_PX;
+                this.render();
+                break;
+            case down :
+                console.log(e.keyCode);
+                this.START_PRICE -= speed * this.PRICE_PER_PX;
+                this.render();
+                break;
+        }
+    },
+
+    onUp: function (e, gs) {
+        if (e.type === 'mouseup') {
+            this.mouseFlag = false;
+            this.cursorPositionX = e.clientX - this.RIGHT_IDENT;
+            this.cursorPositionY = gs.realY(e.clientY);
+        }
+        // else if (e.type === 'touchend') {
+        //     this.mouseFlag = false;
+        // }
+    },
+
+    onDown: function (e, gs) {
+        if (e.type === 'mousedown') {
+            if ((e.clientX - gs.RIGHT_IDENT) > 0 && (e.clientX - gs.RIGHT_IDENT) < gs.WIDTH - gs.RIGHT_IDENT && gs.realY(e.clientY) > 0 && gs.realY(e.clientY) < gs.HEIGHT - gs.BOTTOM_IDENT) {
+                this.mouseFlag = true;
+                console.log('туда');
+                this.cursorPositionX = e.clientX - gs.RIGHT_IDENT;
+                this.cursorPositionY = gs.realY(e.clientY);
+            }
+        }
+        // else if (e.type === 'touchstart') {
+        //     if ((e.touches[0].clientX - this.MARGIN) > 0 && (e.touches[0].clientX - this.MARGIN) < this.WIDTH - 2 * this.MARGIN && this.realY(e.touches[0].clientY) > 0 && this.realY(e.touches[0].clientY) < this.HEIGHT - 2 * this.MARGIN) {
+        //         this.mouseFlag = true;
+        //         //console.log('туда');
+        //         this.cursorPositionX = e.touches[0].clientX - this.MARGIN;
+        //         this.cursorPositionY = this.realY(e.touches[0].clientY);
+        //     }
+        // }
+    },
+
+    onMove: function (e, gs) {
+        var xMS = 0,
+            yUN = 0;
+        if (e.type === 'mousemove') {
+            if (this.mouseFlag) {
+                //console.log('x: ' + e.clientX - 50 + 'y: ' + gs.realY(e.clientY));
+                xMS = e.clientX - 50;
+                yUN = gs.realY(e.clientY);
+                console.log(xMS, yUN);
+                this.drag(xMS, yUN);
+            }
+        }
+        else if (e.type === 'touchmove') {
+            if (this.mouseFlag) {
+                //console.log('x: ' + (e.clientX - Graph.MARGIN) + 'y: ' + Graph.realY(e.clientY));
+                xMS = (e.touches[0].clientX - 50);
+                yUN = gs.realY(e.touches[0].clientY);
+                console.log(xMS, yUN);
+                this.drag(xMS, yUN);
+            }
+        }
     },
 
     //методы для обработки движения графика
