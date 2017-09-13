@@ -36,7 +36,7 @@ Graph.prototype = {
 
     init: function (canvas) {
         console.log('init');
-        this.GraphSettings = new GraphSettings(0, 1800, 0, 0.05, 2, 0, 0, 30, 0.025, 0, 5, 10, 100, 40, 130, 40);
+        this.GraphSettings = new GraphSettings(0, 0, 0, 0.05, 2, 0, 0, 30, 0.025, 0, 5, 10, 100, 40, 130, 40);
         this.Canvas = canvas;
         this.Ctx = this.Canvas.getContext("2d");
         this.tmpCanvas = document.createElement('canvas');
@@ -151,11 +151,11 @@ Graph.prototype = {
             ctx.lineTo(cur_pos, 0.5);
             cur_pos += stepX;
         }
-        cur_pos = gs.calcStepY();
+        cur_pos = gs.realY(gs.calcStepY());
         //console.log('cur_pos_Y = ' + cur_pos, 'height = ' +lengthY);
         while (cur_pos > 0) {
-            ctx.moveTo(0.5, cur_pos);
-            ctx.lineTo(cordForMarkY, cur_pos);
+            ctx.moveTo(0.5, gs.realY(cur_pos));
+            ctx.lineTo(cordForMarkY, gs.realY(cur_pos));
             cur_pos -= stepY;
         }
         ctx.stroke();
@@ -178,10 +178,11 @@ Graph.prototype = {
             ctx.lineTo(cur_pos, cordForMarkX);
             cur_pos += stepX;
         }
-        cur_pos = gs.calcStepY();
+        cur_pos = gs.realY(gs.calcStepY());
+        //console.log(cur_pos, lengthY)
         while (cur_pos > 0) {
-            ctx.moveTo(lengthX, cur_pos);
-            ctx.lineTo(cordForMarkY, cur_pos);
+            ctx.moveTo(lengthX, gs.realY(cur_pos));
+            ctx.lineTo(cordForMarkY, gs.realY(cur_pos));
             cur_pos -= stepY;
         }
         ctx.stroke();
@@ -198,7 +199,8 @@ Graph.prototype = {
             price_per_px = gs.PRICE_PER_PX, //цена за пиксель
             time_per_px = gs.TIME_PER_PX, //время за пиксель
             start_price = gs.START_PRICE, //начальная цена
-            start_ts = gs.START_TS; //начальное время
+            start_ts = gs.START_TS, //начальное время
+            cur_pos_Y = gs.START_PRICE - gs.START_PRICE % (gs.PRICE_PER_PX * gs.STEP_Y);
         ctx.fillStyle = '#000000';
         ctx.font = '14px Arial';
         ctx.textAlign = 'center';
@@ -208,13 +210,19 @@ Graph.prototype = {
             cur_pos += stepX;
         }
         cur_pos = gs.calcStepY();
+        if (gs.START_PRICE > 0) {
+            cur_pos_Y += gs.PRICE_PER_PX * gs.STEP_Y;
+        }
+        console.log(cur_pos_Y)
+        //console.log(cur_pos, lengthY)
         ctx.textAlign = 'left';
         //if (Graph.START_UNITS > 0)
         //    cur_pos += (Graph.UNITS_PER_PIXEL * Graph.PX_PER_POINT);
         //console.log(cur_pos_Y+"="+Graph.START_UNITS+"+"+cur_pos+"*"+Graph.UNITS_PER_PIXEL, Graph.START_UNITS);
-        while (cur_pos > 0) {
-            ctx.fillText(Math.round(start_price + cur_pos * price_per_px).toFixed(2), cordForMarkY, cur_pos);
-            cur_pos -= stepY;
+        while (cur_pos < lengthY) {
+            ctx.fillText(Math.round(start_price + cur_pos_Y * price_per_px).toFixed(2), cordForMarkY, gs.realY(cur_pos));
+            cur_pos += stepY;
+            cur_pos_Y += stepY;
         }
     },
 
@@ -677,6 +685,9 @@ GraphSettings.prototype = {
         if (this.START_TS > 0) {
             indent = this.STEP_X - indent - 0.5;
         }
+        else {
+            indent -= 0.5;
+        }
         return indent;
     }
 
@@ -688,7 +699,10 @@ GraphSettings.prototype = {
         if (this.START_PRICE > 0) {
             indent = this.STEP_Y - indent - 0.5;
         }
-        return this.realY(indent);
+        else {
+            indent -= 0.5;
+        }
+        return indent;
     }
 
     , pxToTime: function (x) {
