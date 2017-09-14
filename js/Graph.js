@@ -209,20 +209,19 @@ Graph.prototype = {
             ctx.fillText(start_ts + cur_pos * time_per_px, cur_pos, cordForMarkX);
             cur_pos += stepX;
         }
-        cur_pos = gs.calcStepY();
+        cur_pos = gs.realY(gs.calcStepY());
         if (gs.START_PRICE > 0) {
             cur_pos_Y += gs.PRICE_PER_PX * gs.STEP_Y;
         }
         console.log(cur_pos_Y)
-        //console.log(cur_pos, lengthY)
+        console.log(cur_pos, lengthY)
         ctx.textAlign = 'left';
         //if (Graph.START_UNITS > 0)
         //    cur_pos += (Graph.UNITS_PER_PIXEL * Graph.PX_PER_POINT);
         //console.log(cur_pos_Y+"="+Graph.START_UNITS+"+"+cur_pos+"*"+Graph.UNITS_PER_PIXEL, Graph.START_UNITS);
-        while (cur_pos < lengthY) {
-            ctx.fillText(Math.round(start_price + cur_pos_Y * price_per_px).toFixed(2), cordForMarkY, gs.realY(cur_pos));
-            cur_pos += stepY;
-            cur_pos_Y += stepY;
+        while (cur_pos > 0) {
+            ctx.fillText(Math.round(-start_price + cur_pos * price_per_px).toFixed(2), cordForMarkY, gs.realY(cur_pos));
+            cur_pos -= stepY;
         }
     },
 
