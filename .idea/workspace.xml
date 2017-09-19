@@ -30,10 +30,10 @@
       <file leaf-file-name="Graph.js" pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/js/Graph.js">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="350">
-              <caret line="33" column="45" lean-forward="false" selection-start-line="33" selection-start-column="45" selection-end-line="33" selection-end-column="45" />
+            <state relative-caret-position="171">
+              <caret line="561" column="42" lean-forward="false" selection-start-line="561" selection-start-column="42" selection-end-line="561" selection-end-column="42" />
               <folding>
-                <element signature="e#9406#9472#0" expanded="false" />
+                <element signature="e#9439#9505#0" expanded="false" />
               </folding>
             </state>
           </provider>
@@ -102,6 +102,9 @@
       <find>wGrid</find>
       <find>calculateIndentOnY</find>
       <find>getYCoordForPrice</find>
+      <find>new C</find>
+      <find>WIDTH</find>
+      <find>transform_TS</find>
     </findStrings>
   </component>
   <component name="Git.Settings">
@@ -214,7 +217,7 @@
       <workItem from="1505391472708" duration="2839000" />
       <workItem from="1505401802924" duration="365000" />
       <workItem from="1505406681542" duration="53000" />
-      <workItem from="1505810692604" duration="8276000" />
+      <workItem from="1505810692604" duration="10776000" />
     </task>
     <task id="LOCAL-00001" summary="CODING">
       <created>1504777283022</created>
@@ -293,11 +296,18 @@
       <option name="project" value="LOCAL" />
       <updated>1505377006375</updated>
     </task>
-    <option name="localTasksCounter" value="12" />
+    <task id="LOCAL-00012" summary="fixed bag with coord lines">
+      <created>1505819038078</created>
+      <option name="number" value="00012" />
+      <option name="presentableId" value="LOCAL-00012" />
+      <option name="project" value="LOCAL" />
+      <updated>1505819038078</updated>
+    </task>
+    <option name="localTasksCounter" value="13" />
     <servers />
   </component>
   <component name="TimeTrackingManager">
-    <option name="totallyTimeSpent" value="79719000" />
+    <option name="totallyTimeSpent" value="82219000" />
   </component>
   <component name="ToolWindowManager">
     <frame x="-9" y="-9" width="1938" height="1098" extended-state="6" />
@@ -356,7 +366,8 @@
     <MESSAGE value="работа с перетаскиванием" />
     <MESSAGE value="upd graph.js" />
     <MESSAGE value="fixed bag" />
-    <option name="LAST_COMMIT_MESSAGE" value="fixed bag" />
+    <MESSAGE value="fixed bag with coord lines" />
+    <option name="LAST_COMMIT_MESSAGE" value="fixed bag with coord lines" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
@@ -734,10 +745,10 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/js/Graph.js">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="350">
-          <caret line="33" column="45" lean-forward="false" selection-start-line="33" selection-start-column="45" selection-end-line="33" selection-end-column="45" />
+        <state relative-caret-position="171">
+          <caret line="561" column="42" lean-forward="false" selection-start-line="561" selection-start-column="42" selection-end-line="561" selection-end-column="42" />
           <folding>
-            <element signature="e#9406#9472#0" expanded="false" />
+            <element signature="e#9439#9505#0" expanded="false" />
           </folding>
         </state>
       </provider>

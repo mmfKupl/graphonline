@@ -31,7 +31,7 @@ Graph.prototype = {
         console.log('init');
         this.GraphSettings = new GraphSettings(
             /*start_ts*/                   1505723122670,//1505476421352, //1505394063539,
-            /*start_price*/                80,
+            /*start_price*/                0,
             /*scale*/                      0,
             /*speed_of_moving_graph*/      5,
             /*width*/                      0,
@@ -184,7 +184,7 @@ Graph.prototype = {
         this.drawXGridMarks(ctx, gs);
     },
 
-    drawXGridMarks: function(ctx, gs) {
+    drawXGridMarks: function (ctx, gs) { //НУЖНО ПЕРЕДЕЛАТЬ
         var px = gs.PERFECT_PX;
         var indentX = gs.TIME_STEP / 2 + px;
         var stepX = gs.TIME_STEP;
@@ -231,19 +231,19 @@ Graph.prototype = {
         ctx.stroke();
     },
 
-    drawYGridMarks: function(ctx, gs){
+    drawYGridMarks: function (ctx, gs) {
         var px = gs.PERFECT_PX;
         var pricePerPixel = gs.PRICE_PER_PX; // How many PRICE units in 1 PIXEL currently
         var pixelsPerGridMark = gs.PRICE_STEP; // Pixels in one vertical mark on Y grid
         var startPrice = gs.START_PRICE; // Price units on zero point in corner of graph
 
-        var priceUnitsInGridMark = pixelsPerGridMark*pricePerPixel;
+        var priceUnitsInGridMark = pixelsPerGridMark * pricePerPixel;
 
         var firstGridMarkPrice = (startPrice % priceUnitsInGridMark ) ?
-            (startPrice + priceUnitsInGridMark - startPrice%priceUnitsInGridMark)
+            (startPrice + priceUnitsInGridMark - startPrice % priceUnitsInGridMark)
             : startPrice + priceUnitsInGridMark; // Price on first grid mark visible on axe
 
-        if(startPrice<0){
+        if (startPrice < 0) {
             firstGridMarkPrice -= priceUnitsInGridMark;
         }
         var smallIntervalPixelsHeight = gs.calculateIndentOnY();
@@ -259,14 +259,14 @@ Graph.prototype = {
         var centerX = gs.realX(0);
         var coord_of_mark_X = gs.realX(-8.5);
         ctx.beginPath();
-        while(currentH < gs.HEIGHT){
+        while (currentH < gs.HEIGHT) {
             var xCoord = gs.WIDTH - gs.RIGHT_INDENT + 40;
             var yCoord = gs.HEIGHT - currentH;
             ctx.moveTo(centerX + px, yCoord + px);
             ctx.lineTo(coord_of_mark_X, yCoord + px);
             ctx.fillText(currentGridMarkPrice.toFixed(4), xCoord, yCoord);
             //console.log(currentGridMarkPrice, xCoord, yCoord);
-            currentH+=pixelsPerGridMark;
+            currentH += pixelsPerGridMark;
             currentGridMarkPrice += priceUnitsInGridMark;
         }
         ctx.stroke();
@@ -331,58 +331,83 @@ Graph.prototype = {
 
     //нажатие левой кнопки мыши
     onDown: function (e, gs) {
-        if (e.type === 'mousedown') {
-            if ((e.clientX <= gs.WIDTH - gs.RIGHT_INDENT) && (e.clientY <= gs.HEIGHT - gs.BOTTOM_INDENT)) {
-                console.log('here');
-                this.mouseFlag = true;
-                this.cursorPositionX = gs.realX(e.clientX);
-                this.cursorPositionY = gs.realY(e.clientY);
-            }
+        if ((e.clientX <= gs.WIDTH - gs.RIGHT_INDENT + 50) && (e.clientY <= gs.HEIGHT - gs.BOTTOM_INDENT)) {
+
+            console.log('down');
+            this.mouseFlag = true;
+            this.cursorPositionX = gs.realX(e.clientX - 50);
+            this.cursorPositionY = gs.realY(e.clientY);
+
         }
-        else if (e.type === 'touchstart') {
-            if ((e.touches[0].clientX <= gs.WIDTH - gs.RIGHT_INDENT) && (e.touches[0].clientY <= gs.HEIGHT - gs.BOTTOM_INDENT)) {
-                Graph.mouseFlag = true;
-                Graph.cursorPositionX = gs.realX(e.touches[0].clientX);
-                Graph.cursorPositionY = gs.realY(e.touches[0].clientY);
-            }
-        }
+        // if (e.type === 'mousedown') {
+        //     if ((e.clientX <= gs.WIDTH - gs.RIGHT_INDENT) && (e.clientY <= gs.HEIGHT - gs.BOTTOM_INDENT)) {
+        //         console.log('here');
+        //         this.mouseFlag = true;
+        //         this.cursorPositionX = gs.realX(e.clientX);
+        //         this.cursorPositionY = gs.realY(e.clientY);
+        //     }
+        // }
+        // else if (e.type === 'touchstart') {
+        //     if ((e.touches[0].clientX <= gs.WIDTH - gs.RIGHT_INDENT) && (e.touches[0].clientY <= gs.HEIGHT - gs.BOTTOM_INDENT)) {
+        //         Graph.mouseFlag = true;
+        //         Graph.cursorPositionX = gs.realX(e.touches[0].clientX);
+        //         Graph.cursorPositionY = gs.realY(e.touches[0].clientY);
+        //     }
+        // }
     },
 
     //функция для обработчика событий при движении мыши
     onMove: function (e, gs) {
-        var x = 0,
-            y = 0;
-        if (e.type === 'mousemove') {
-            if (this.mouseFlag) {
-                x = gs.realX(e.clientX);
-                y = gs.realY(e.clientY);
+        var x = 0, y = 0, deltaX = 0, deltaY = 0;
+        if (this.mouseFlag) {
+            console.log('move', '(' + gs.realX(e.clientX - 50) + ', ' + gs.realY(e.clientY) + ');');
 
-                //преобразование разницы в координатах в нужную величину
-                var deltaXPrice = (this.cursorPositionX - x) * gs.PRICE_PER_PX;
-                var deltaYTime = (this.cursorPositionY - y) * gs.TIME_PER_PX;
+            x = gs.realX(e.clientX - 50);
+            y = gs.realY(e.clientY);
+            deltaX += (this.cursorPositionX - x) * gs.TIME_PER_PX;
+            deltaY += (this.cursorPositionY - y) * gs.PRICE_PER_PX;
+            this.onDragged(deltaX, deltaY);
+            this.cursorPositionX = x;
+            this.cursorPositionY = y
 
-                this.onDragged(deltaXPrice, deltaYTime);
-            }
         }
-        else if (e.type === 'touchmove') {
-            if (Graph.mouseFlag) {
-                x = gs.realX(e.touches[0].clientX);
-                y = gs.realY(e.touches[0].clientY);
-                this.onDragged(x, y);
-            }
-        }
+        // var x = 0,
+        //     y = 0;
+        // if (e.type === 'mousemove') {
+        //     if (this.mouseFlag) {
+        //         x = gs.realX(e.clientX);
+        //         y = gs.realY(e.clientY);
+        //
+        //         //преобразование разницы в координатах в нужную величину
+        //         var deltaXPrice = (this.cursorPositionX - x) * gs.PRICE_PER_PX;
+        //         var deltaYTime = (this.cursorPositionY - y) * gs.TIME_PER_PX;
+        //
+        //         this.onDragged(deltaXPrice, deltaYTime);
+        //     }
+        // }
+        // else if (e.type === 'touchmove') {
+        //     if (Graph.mouseFlag) {
+        //         x = gs.realX(e.touches[0].clientX);
+        //         y = gs.realY(e.touches[0].clientY);
+        //         this.onDragged(x, y);
+        //     }
+        // }
     },
 
     //функция для обработчика событий при отпускании ЛКМ
     onUp: function (e, gs) {
-        if (e.type === 'mouseup') {
-            this.mouseFlag = false;
-            this.cursorPositionX = gs.realX(e.clientX);
-            this.cursorPositionY = gs.realY(e.clientY);
-        }
-        else if (e.type === 'touchend') {
-            Graph.mouseFlag = false;
-        }
+        console.log('up');
+        this.mouseFlag = false;
+        this.cursorPositionX = gs.realX(e.clientX - 50);
+        this.cursorPositionY = gs.realY(e.clientY);
+        // if (e.type === 'mouseup') {
+        //     this.mouseFlag = false;
+        //     this.cursorPositionX = gs.realX(e.clientX);
+        //     this.cursorPositionY = gs.realY(e.clientY);
+        // }
+        // else if (e.type === 'touchend') {
+        //     Graph.mouseFlag = false;
+        // }
     },
 
 
@@ -425,7 +450,7 @@ Graph.prototype = {
     transform: function (q) {
         console.log(q);
         if (q.transform_TS) {
-            this.GraphSettings.START_TS += q.transform_TS;
+            this.GraphSettings.START_TS -= q.transform_TS;
         }
         if (q.transform_Price) {
             this.GraphSettings.START_PRICE += q.transform_Price;
@@ -537,6 +562,7 @@ CircleSprite.prototype = {
         var _x = gs.getXCoordForTS(this.X);
         var _y = gs.getYCoordForPrice(this.Y);
 
+        ctx.lineWidth = 1;
         ctx.strokeStyle = 'red';
         ctx.beginPath();
         ctx.arc(_x, _y, this.r, 0, Math.PI * 2);
@@ -580,7 +606,8 @@ RectangleSprite.prototype = {
         var _y = gs.getYCoordForPrice(this.Y);
 
         ctx.strokeStyle = "green";
-        ctx.strokeRect(_x, _y, this.width, this.height);
+        ctx.lineWidth = 1;
+        ctx.strokeRect(_x + 0.5, _y + 0.5, this.width, this.height);
 
     }
 
@@ -659,12 +686,12 @@ GraphSettings.prototype = {
         var priceUnitsInOneGridMark = this.PRICE_PER_PX * this.PRICE_STEP;
         var startPrice = this.START_PRICE;
 
-        var priceUnitsInSmallInterval = (startPrice >=0 )  ? startPrice % priceUnitsInOneGridMark : ( priceUnitsInOneGridMark + startPrice % priceUnitsInOneGridMark);
+        var priceUnitsInSmallInterval = (startPrice >= 0 ) ? startPrice % priceUnitsInOneGridMark : ( priceUnitsInOneGridMark + startPrice % priceUnitsInOneGridMark);
 
 
-        var smallIntervalPriceUnits =  (priceUnitsInOneGridMark - (priceUnitsInSmallInterval) ) ;
-        var smallIntervalPixels =  smallIntervalPriceUnits/this.PRICE_PER_PX;
-        smallIntervalPixels = (smallIntervalPixels >=0) ? smallIntervalPixels : (smallIntervalPixels+this.PRICE_STEP);
+        var smallIntervalPriceUnits = (priceUnitsInOneGridMark - (priceUnitsInSmallInterval) );
+        var smallIntervalPixels = smallIntervalPriceUnits / this.PRICE_PER_PX;
+        smallIntervalPixels = (smallIntervalPixels >= 0) ? smallIntervalPixels : (smallIntervalPixels + this.PRICE_STEP);
 
 
         return smallIntervalPixels;
