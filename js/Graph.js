@@ -21,46 +21,51 @@ Graph.prototype = {
 
     Type: null,
 
-    numberOfCandle: 5,
-
     mouseFlag: false,
 
     cursorPositionX: 0,
 
     cursorPositionY: 0,
 
-    // tmpX: 0,
-    //
-    // shiftX: 0,
-    // shiftY: 0,
-
     init: function (canvas) {
         console.log('init');
-        this.GraphSettings = new GraphSettings(0, 0, 0, 0.05, 2, 0, 0, 30, 0.025, 0, 5, 10, 100, 40, 130, 40);
+        this.GraphSettings = new GraphSettings(
+            /*start_ts*/                   1505723122670,//1505476421352, //1505394063539,
+            /*start_price*/                80,
+            /*scale*/                      0,
+            /*speed_of_moving_graph*/      5,
+            /*width*/                      0,
+            /*height*/                     0,
+            /*time_per_px*/                2500,
+            /*time_step*/                  120,
+            /*price_per_px*/               0.025,
+            /*price_step*/                 40,
+            /*timeframe*/                  0,
+            /*price_points*/               5,
+            /*min_px_per_detailed_candle*/ 60
+        );
         this.Canvas = canvas;
         this.Ctx = this.Canvas.getContext("2d");
         this.tmpCanvas = document.createElement('canvas');
         this.tmpCtx = this.tmpCanvas.getContext('2d');
         this.getDimensions();
         this.render();
-        var t = this;
         window.addEventListener('resize', this.onResize.bind(this));
         window.addEventListener('keydown', function (e) {
-            t.dragByButtons(e, t.GraphSettings);
-        });
+            this.dragByButtons(e, this.GraphSettings);
+        }.bind(this));
         this.Canvas.addEventListener('mouseup', function (e) {
-            t.onUp(e, t.GraphSettings);
-        });
+            this.onUp(e, this.GraphSettings);
+        }.bind(this));
         this.Canvas.addEventListener('mousedown', function (e) {
-            t.onDown(e, t.GraphSettings);
-        });
+            this.onDown(e, this.GraphSettings);
+        }.bind(this));
         this.Canvas.addEventListener('mousemove', function (e) {
-            t.onMove(e, t.GraphSettings);
-        });
+            this.onMove(e, this.GraphSettings);
+        }.bind(this));
     },
 
     getDimensions: function () {
-        console.log(this);
         console.log('getDim');
         var div = document.getElementsByClassName('graph')[0];
         var styles = getComputedStyle(div);
@@ -91,11 +96,16 @@ Graph.prototype = {
 
     buildData: function () {
         this.buildSprites();//отрисовка графических объектов
-        this.drawMarks(this.tmpCtx, this.GraphSettings);//подписи меток на координатных осях
         this.transferImgData(); //отрисовка временного холста на основной
     },
 
     buildSprites: function () {
+
+        var t = this;
+
+        this.drawGrid(t.tmpCtx, t.GraphSettings);//отрисовка сетки
+
+
         //отрисовка графических эл-тов - т.е. вызов у каждого графического элемента своей функции отрисовки
 
         // var t = this;
@@ -106,12 +116,6 @@ Graph.prototype = {
         //     })
         // });
 
-        var t = this;
-
-
-        this.drawGrid(t.tmpCtx, t.GraphSettings);//отрисовка сетки
-        this.drawAxes(t.tmpCtx, t.GraphSettings);//отрисовка осей
-        this.drawGridMarks(t.tmpCtx, t.GraphSettings);//отрисовка меток на координатных осях
 
         App.CurrentGraph.getSprites(function (sprites) {
             sprites.forEach(function (sprite) {
@@ -119,111 +123,268 @@ Graph.prototype = {
             })
         });
 
+        this.drawAxes(t.tmpCtx, t.GraphSettings);//отрисовка осей
+        this.drawGridMarks(t.tmpCtx, t.GraphSettings);//отрисовка меток на координатных осях
+
     },
 
     drawAxes: function (ctx, gs) {
-        var nullPosition = gs.realY(0.5), //нулевая позиция по игреку
-            width = gs.WIDTH, //ширина окна
-            right = gs.RIGHT_INDENT - 0.5; //правый отступ
+        var centerX = gs.realX(0);
+        var centerY = gs.realY(0);
+        var px = gs.PERFECT_PX;
+
+        ctx.fillStyle = '#ffffff';
+        ctx.fillRect(px, gs.HEIGHT - gs.BOTTOM_INDENT + px, gs.WIDTH - gs.RIGHT_INDENT, gs.BOTTOM_INDENT);   // Рисует закрашенный прямоугольник
+
         ctx.strokeStyle = '#000000';
         ctx.lineWidth = 1;
         ctx.beginPath();
-        ctx.moveTo(0.5, nullPosition);
-        ctx.lineTo(width - right, nullPosition);
-        ctx.lineTo(width - right, 0.5);
+        ctx.moveTo(px, gs.HEIGHT - gs.BOTTOM_INDENT + px); //левый нижний угол
+        ctx.lineTo(centerX + px, centerY + px); //центр
+        ctx.lineTo(gs.WIDTH - gs.RIGHT_INDENT + px, px); //правый верхний угол
         ctx.stroke();
     },
 
     drawGrid: function (ctx, gs) {
-        var nullPosition = gs.realY(0.5), //нулевая позиция по игреку
-            lengthX = gs.WIDTH - gs.RIGHT_INDENT, //длинна оси ОХ
-            lengthY = gs.HEIGHT - gs.BOTTOM_INDENT, //длинна оси ОУ
-            stepX = gs.STEP_X, stepY = gs.STEP_Y, //шаг по иксу и игреку
-            cordForMarkY = lengthX + 8.5, //координата для отрисовки меток по иксу
-            cur_pos = gs.calcStepX();//gs.calculateSectionsOnX() + 0.5;//gs.calculateSectionsOnX();
-        //console.log(cur_pos, lengthX);
-        //console.log('cur_pos_X = ' + cur_pos, 'width = ' + lengthX);
-        ctx.strokeStyle = '#e6e6e6';
-        ctx.lineWidth = 1;
+        var px = gs.PERFECT_PX,
+            cur_pos = gs.realX(gs.calculateIndentOnX()) + px, //откуда начинать отрисовку на оси OX
+            centerY = gs.realY(0),
+            centerX = gs.realX(0),
+            stepX = gs.TIME_STEP,
+            stepY = gs.PRICE_STEP;
+
+        ctx.lineWidth = 0.2;
+
+        //отрисовка по ОХ
         ctx.beginPath();
-        while (cur_pos < lengthX) {
-            ctx.moveTo(cur_pos, nullPosition);
-            ctx.lineTo(cur_pos, 0.5);
-            cur_pos += stepX;
-        }
-        cur_pos = gs.realY(gs.calcStepY());
-        //console.log('cur_pos_Y = ' + cur_pos, 'height = ' +lengthY);
         while (cur_pos > 0) {
-            ctx.moveTo(0.5, gs.realY(cur_pos));
-            ctx.lineTo(cordForMarkY, gs.realY(cur_pos));
-            cur_pos -= stepY;
+            ctx.moveTo(cur_pos, centerY);
+            ctx.lineTo(cur_pos, 0);
+            cur_pos -= stepX;
         }
         ctx.stroke();
-    },
 
-    drawGridMarks: function (ctx, gs) {
-        var nullPosition = gs.realY(0.5), //нулевая позиция по игреку
-            cordForMarkX = gs.realY(-8.5), //координата для отрисовки меток по игреку
-            lengthX = gs.WIDTH - gs.RIGHT_INDENT, //длинна оси ОХ
-            lengthY = gs.HEIGHT - gs.BOTTOM_INDENT, //длинна оси ОУ
-            stepX = gs.STEP_X, stepY = gs.STEP_Y, //шаг по иксу и игреку
-            cordForMarkY = lengthX + 8.5, //координата для отрисовки меток по иксу
-            cur_pos = gs.calcStepX() - stepX / 2;//gs.calculateSectionsOnX() / 2 + 0.5;
-        console.log(cur_pos, lengthX);
-        ctx.strokeStyle = '#000000';
-        ctx.lineWidth = 1;
+        ctx.fillStyle = '#ffffff';
+        ctx.fillRect(gs.WIDTH - gs.RIGHT_INDENT + 1, 0.5, gs.RIGHT_INDENT, gs.HEIGHT);   // Рисует закрашенный прямоугольник ЗАЧЕМ???
+
+        //отрисовка по OY
+        cur_pos = gs.realY(gs.calculateIndentOnY()); //
         ctx.beginPath();
-        while (cur_pos < lengthX) {
-            ctx.moveTo(cur_pos, nullPosition);
-            ctx.lineTo(cur_pos, cordForMarkX);
-            cur_pos += stepX;
-        }
-        cur_pos = gs.realY(gs.calcStepY());
-        //console.log(cur_pos, lengthY)
         while (cur_pos > 0) {
-            ctx.moveTo(lengthX, gs.realY(cur_pos));
-            ctx.lineTo(cordForMarkY, gs.realY(cur_pos));
+            ctx.moveTo(centerX + px, cur_pos + px);
+            ctx.lineTo(px, cur_pos + px);
             cur_pos -= stepY;
         }
         ctx.stroke();
 
     },
 
-    drawMarks: function (ctx, gs) { //подписи на меток координатных осях
-        var cordForMarkX = gs.realY(-18.5), //координата для отрисовки значений по игреку
-            lengthX = gs.WIDTH - gs.RIGHT_INDENT, //длинна оси ОХ
-            lengthY = gs.HEIGHT - gs.BOTTOM_INDENT, //длинна оси ОУ
-            stepX = gs.STEP_X, stepY = gs.STEP_Y, //шаг по иксу и игреку
-            cordForMarkY = lengthX + 12.5, //координата для отрисовки значений по иксу
-            cur_pos = gs.calcStepX() - stepX / 2,//gs.calculateSectionsOnX() / 2 + 0.5;
-            price_per_px = gs.PRICE_PER_PX, //цена за пиксель
-            time_per_px = gs.TIME_PER_PX, //время за пиксель
-            start_price = gs.START_PRICE, //начальная цена
-            start_ts = gs.START_TS, //начальное время
-            cur_pos_Y = gs.START_PRICE - gs.START_PRICE % (gs.PRICE_PER_PX * gs.STEP_Y);
+    drawGridMarks: function (ctx, gs) { //метки на кооржинатных осях
+        this.drawYGridMarks(ctx, gs);
+        this.drawXGridMarks(ctx, gs);
+    },
+
+    drawXGridMarks: function(ctx, gs) {
+        var px = gs.PERFECT_PX;
+        var indentX = gs.TIME_STEP / 2 + px;
+        var stepX = gs.TIME_STEP;
+        var coord_of_mark_Y = Math.round(gs.realY(-8.5)); // координата конца метки по оси OY
+        var centerY = gs.realY(0);
+        var cur_pos = gs.realX(gs.calculateIndentOnX()) - indentX;
+
+        ctx.lineWidth = 1;
         ctx.fillStyle = '#000000';
         ctx.font = '14px Arial';
         ctx.textAlign = 'center';
         ctx.textBaseline = 'middle';
-        while (cur_pos < lengthX) {
-            ctx.fillText(start_ts + cur_pos * time_per_px, cur_pos, cordForMarkX);
-            cur_pos += stepX;
+
+
+        if (Math.abs(gs.calculateIndentOnX() % stepX) > indentX) {
+            cur_pos = gs.realX(gs.calculateIndentOnX()) + indentX - 2 * px;
         }
-        cur_pos = gs.realY(gs.calcStepY());
-        if (gs.START_PRICE > 0) {
-            cur_pos_Y += gs.PRICE_PER_PX * gs.STEP_Y;
-        }
-        console.log(cur_pos_Y)
-        console.log(cur_pos, lengthY)
-        ctx.textAlign = 'left';
-        //if (Graph.START_UNITS > 0)
-        //    cur_pos += (Graph.UNITS_PER_PIXEL * Graph.PX_PER_POINT);
-        //console.log(cur_pos_Y+"="+Graph.START_UNITS+"+"+cur_pos+"*"+Graph.UNITS_PER_PIXEL, Graph.START_UNITS);
+        ctx.beginPath();
         while (cur_pos > 0) {
-            ctx.fillText(Math.round(-start_price + cur_pos * price_per_px).toFixed(2), cordForMarkY, gs.realY(cur_pos));
-            cur_pos -= stepY;
+            ctx.moveTo(cur_pos, centerY);
+            ctx.lineTo(cur_pos, coord_of_mark_Y);
+            cur_pos -= stepX;
+        }
+        ctx.stroke();
+        var ts = gs.TIME_STEP * gs.TIME_PER_PX; //в одном промежутке сколько милисекунд
+        cur_pos = gs.realX(gs.calculateIndentOnX()) - indentX; //координата для отрисовки метки
+        var time = (Math.abs(gs.calculateIndentOnX()) + Math.floor(indentX)) * gs.TIME_PER_PX; //время под первой меткой
+        if (Math.abs(gs.calculateIndentOnX() % stepX) > indentX) {
+            cur_pos = gs.realX(gs.calculateIndentOnX()) + indentX - 2 * px;
+            time = (gs.calculateIndentOnX() - Math.floor(indentX)) * gs.TIME_PER_PX;
+        }
+        coord_of_mark_Y = gs.realY(-18.5);
+        var start_ts = gs.START_TS;
+        var date;
+        ctx.beginPath();
+        var str = "";
+        while (cur_pos > 0) {
+            date = new Date(start_ts - time);
+            str = date.getHours() + ':' + date.getMinutes() + ':' + date.getSeconds();
+            ctx.fillText(str, cur_pos, coord_of_mark_Y);
+            cur_pos -= stepX;
+            time += ts;
+        }
+        ctx.stroke();
+    },
+
+    drawYGridMarks: function(ctx, gs){
+        var px = gs.PERFECT_PX;
+        var pricePerPixel = gs.PRICE_PER_PX; // How many PRICE units in 1 PIXEL currently
+        var pixelsPerGridMark = gs.PRICE_STEP; // Pixels in one vertical mark on Y grid
+        var startPrice = gs.START_PRICE; // Price units on zero point in corner of graph
+
+        var priceUnitsInGridMark = pixelsPerGridMark*pricePerPixel;
+
+        var firstGridMarkPrice = (startPrice % priceUnitsInGridMark ) ?
+            (startPrice + priceUnitsInGridMark - startPrice%priceUnitsInGridMark)
+            : startPrice + priceUnitsInGridMark; // Price on first grid mark visible on axe
+
+        if(startPrice<0){
+            firstGridMarkPrice -= priceUnitsInGridMark;
+        }
+        var smallIntervalPixelsHeight = gs.calculateIndentOnY();
+
+        ctx.lineWidth = 1;
+        ctx.fillStyle = '#000000';
+        ctx.font = '14px Arial';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+
+        var currentH = gs.BOTTOM_INDENT + smallIntervalPixelsHeight;
+        var currentGridMarkPrice = firstGridMarkPrice;
+        var centerX = gs.realX(0);
+        var coord_of_mark_X = gs.realX(-8.5);
+        ctx.beginPath();
+        while(currentH < gs.HEIGHT){
+            var xCoord = gs.WIDTH - gs.RIGHT_INDENT + 40;
+            var yCoord = gs.HEIGHT - currentH;
+            ctx.moveTo(centerX + px, yCoord + px);
+            ctx.lineTo(coord_of_mark_X, yCoord + px);
+            ctx.fillText(currentGridMarkPrice.toFixed(4), xCoord, yCoord);
+            //console.log(currentGridMarkPrice, xCoord, yCoord);
+            currentH+=pixelsPerGridMark;
+            currentGridMarkPrice += priceUnitsInGridMark;
+        }
+        ctx.stroke();
+
+        // cur_pos = gs.realY(gs.calculateIndentOnY()) + px/* - indentY*/;
+        //
+        // ctx.beginPath();
+        // while (cur_pos >= 0) {
+        //     ctx.moveTo(centerX + px, cur_pos);
+        //     ctx.lineTo(coord_of_mark_X, cur_pos);
+        //     cur_pos -= stepY;
+        // }
+        // ctx.stroke();
+        //
+        // cur_pos = gs.realY(gs.calculateIndentOnY()) + px/* - indentY + 2 * px*/;
+        // coord_of_mark_X = gs.realX(-35.5);
+        // var price_per_step = gs.PRICE_STEP * gs.PRICE_PER_PX;
+        // var price = -gs.START_PRICE + (gs.calculateIndentOnY() + indentY) * gs.PRICE_PER_PX - 1;
+        //
+        // if (gs.calculateIndentOnY() % stepY > indentY) {
+        //     cur_pos = gs.realY(gs.calculateIndentOnY()) + indentY;
+        //     price = -gs.START_PRICE + (gs.calculateIndentOnY() - indentY) * gs.PRICE_PER_PX - 1;
+        // }
+        // var str = '';
+        // ctx.beginPath();
+        // while (cur_pos > 0) {
+        //     str = price.toFixed(1) + '00';
+        //     ctx.fillText(str, coord_of_mark_X, cur_pos);
+        //     cur_pos -= stepY;
+        //     price += price_per_step;
+        // }
+        // ctx.stroke();
+    },
+
+    dragByButtons: function (e, gs) {
+        var left = 37,
+            up = 38,
+            right = 39,
+            down = 40,
+            speed = gs.SPEED_OF_MOVING_GRAPH,
+            val = 0; //value of dragging
+
+        switch (e.keyCode) {
+            case left:
+                val = -gs.pxToTime(speed);
+                this.onDragged(val, 'left');
+                break;
+            case up:
+                val = gs.pxToPrice(speed);
+                this.onDragged(val, 'up');
+                break;
+            case right:
+                val = gs.pxToTime(speed);
+                this.onDragged(val, 'right');
+                break;
+            case down:
+                val = -gs.pxToPrice(speed);
+                this.onDragged(val, 'down');
+                break;
         }
     },
+
+    //нажатие левой кнопки мыши
+    onDown: function (e, gs) {
+        if (e.type === 'mousedown') {
+            if ((e.clientX <= gs.WIDTH - gs.RIGHT_INDENT) && (e.clientY <= gs.HEIGHT - gs.BOTTOM_INDENT)) {
+                console.log('here');
+                this.mouseFlag = true;
+                this.cursorPositionX = gs.realX(e.clientX);
+                this.cursorPositionY = gs.realY(e.clientY);
+            }
+        }
+        else if (e.type === 'touchstart') {
+            if ((e.touches[0].clientX <= gs.WIDTH - gs.RIGHT_INDENT) && (e.touches[0].clientY <= gs.HEIGHT - gs.BOTTOM_INDENT)) {
+                Graph.mouseFlag = true;
+                Graph.cursorPositionX = gs.realX(e.touches[0].clientX);
+                Graph.cursorPositionY = gs.realY(e.touches[0].clientY);
+            }
+        }
+    },
+
+    //функция для обработчика событий при движении мыши
+    onMove: function (e, gs) {
+        var x = 0,
+            y = 0;
+        if (e.type === 'mousemove') {
+            if (this.mouseFlag) {
+                x = gs.realX(e.clientX);
+                y = gs.realY(e.clientY);
+
+                //преобразование разницы в координатах в нужную величину
+                var deltaXPrice = (this.cursorPositionX - x) * gs.PRICE_PER_PX;
+                var deltaYTime = (this.cursorPositionY - y) * gs.TIME_PER_PX;
+
+                this.onDragged(deltaXPrice, deltaYTime);
+            }
+        }
+        else if (e.type === 'touchmove') {
+            if (Graph.mouseFlag) {
+                x = gs.realX(e.touches[0].clientX);
+                y = gs.realY(e.touches[0].clientY);
+                this.onDragged(x, y);
+            }
+        }
+    },
+
+    //функция для обработчика событий при отпускании ЛКМ
+    onUp: function (e, gs) {
+        if (e.type === 'mouseup') {
+            this.mouseFlag = false;
+            this.cursorPositionX = gs.realX(e.clientX);
+            this.cursorPositionY = gs.realY(e.clientY);
+        }
+        else if (e.type === 'touchend') {
+            Graph.mouseFlag = false;
+        }
+    },
+
 
     transferImgData: function () {
         this.imgData = this.tmpCtx.getImageData(0, 0, this.GraphSettings.WIDTH, this.GraphSettings.HEIGHT);
@@ -238,206 +399,11 @@ Graph.prototype = {
         f(sprites);
     },
 
-    // drag: function (e) {
-    //     var left = 37,
-    //         up = 38,
-    //         right = 39,
-    //         down = 40,
-    //         speed = this.SPEED_OF_MOVING_GRAPH;
-    //     switch (e.keyCode) {
-    //         case left :
-    //             //Graph.tmpX = (Graph.LAST_MS - Graph.START_MS);
-    //             console.log(e.keyCode);
-    //             this.START_TS -= speed * this.TIME_PER_PX;
-    //             this.render();
-    //             break;
-    //         case right :
-    //             //Graph.tmpX = (Graph.LAST_MS - Graph.START_MS);
-    //             // if (Graph.tmpX < Graph.controlLenght) {
-    //             //     Graph.render();
-    //             //     break;
-    //             // }
-    //             console.log(e.keyCode);
-    //
-    //             this.START_TS += speed * this.TIME_PER_PX;
-    //             this.render();
-    //             break;
-    //         case up :
-    //             console.log(e.keyCode);
-    //
-    //             this.START_PRICE += speed * this.PRICE_PER_PX;
-    //             this.render();
-    //             break;
-    //         case down :
-    //             console.log(e.keyCode);
-    //             this.START_PRICE -= speed * this.PRICE_PER_PX;
-    //             this.render();
-    //             break;
-    //     }
-    // },
-    //
-    // dragGraph: function (x, y, gs) {
-    //     ///console.log(Graph.cursorPositionX - x, Graph.cursorPositionY - y, x, y);
-    //     //this.tmpX = (this.LAST_MS - Graph.START_MS);
-    //     // if (Graph.tmpX < Graph.controlLenght && Graph.cursorPositionX - x > 0) {
-    //     //     if (Graph.controlLenght - Graph.tmpX > 0) {
-    //     //         Graph.START_MS = Date.now() - Graph.OX_MS + Graph.threshold * Graph.OX_MS;
-    //     //         Graph.mouseFlag = false;
-    //     //         Graph.render();
-    //     //     }
-    //     //     Graph.mouseFlag = false;
-    //     // }
-    //     // else {
-    //     this.shiftX += Math.abs(this.cursorPositionX - x);
-    //     this.shiftY += Math.abs(this.cursorPositionY - y);
-    //     //console.log(Graph.shiftX,Graph.shiftY);
-    //     if (this.shiftX > 10 && this.shiftY > 10) {
-    //         gs.START_TS += (this.cursorPositionX - x) * gs.TIME_PER_PX;
-    //         gs.START_PRICE += (this.cursorPositionY - y) * gs.PRICE_PER_PX;
-    //         this.cursorPositionX = x;
-    //         this.cursorPositionY = y;
-    //         this.render();
-    //         this.shiftX = 0;
-    //         this.shiftY = 0;
-    //     }
-    //
-    // },
-    //
-    dragByButtons: function (e, gs) {
-        var left = 37,
-            up = 38,
-            right = 39,
-            down = 40,
-            speed = gs.SPEED_OF_MOVING_GRAPH,
-            incr = 0;
-        switch (e.keyCode) {
-            case left :
-                //Graph.tmpX = (Graph.LAST_MS - Graph.START_MS);
-                console.log(e.keyCode);
-                // this.START_TS -= speed * this.TIME_PER_PX;
-                incr = -gs.pxToTime(speed);
-                //console.log(incr);
-                this.onDragged(incr, 'left');
-                break;
-            case right :
-                //Graph.tmpX = (Graph.LAST_MS - Graph.START_MS);
-                // if (Graph.tmpX < Graph.controlLenght) {
-                //     break;
-                // }
-                incr = gs.pxToTime(speed);
-                console.log(e.keyCode);
-
-                // this.START_TS += speed * this.TIME_PER_PX;
-                this.onDragged(incr, 'right');
-                break;
-            case up :
-                console.log(e.keyCode);
-                incr = gs.pxToPrice(speed);
-                // this.START_PRICE += speed * this.PRICE_PER_PX;
-                this.onDragged(incr, 'up');
-                break;
-            case down :
-                console.log(e.keyCode);
-                incr = -gs.pxToPrice(speed);
-                this.onDragged(incr, 'down');
-                //this.START_PRICE -= speed * this.PRICE_PER_PX;
-                break;
-        }
-    },
-
-    onUp: function (e, gs) {
-        if (e.type === 'mouseup') {
-            this.mouseFlag = false;
-            this.cursorPositionX = e.clientX - this.RIGHT_INDENT;
-            this.cursorPositionY = gs.realY(e.clientY);
-        }
-        // else if (e.type === 'touchend') {
-        //     this.mouseFlag = false;
-        // }
-    },
-
-    onDown: function (e, gs) {
-        if (e.type === 'mousedown') {
-            if ((e.clientX - gs.RIGHT_INDENT) < gs.WIDTH - gs.RIGHT_INDENT && gs.realY(e.clientY) > 0) {
-                this.mouseFlag = true;
-                console.log('туда');
-                this.cursorPositionX = e.clientX - gs.RIGHT_INDENT;
-                this.cursorPositionY = gs.realY(e.clientY);
-            }
-        }
-        // else if (e.type === 'touchstart') {
-        //     if ((e.touches[0].clientX - this.MARGIN) > 0 && (e.touches[0].clientX - this.MARGIN) < this.WIDTH - 2 * this.MARGIN && this.realY(e.touches[0].clientY) > 0 && this.realY(e.touches[0].clientY) < this.HEIGHT - 2 * this.MARGIN) {
-        //         this.mouseFlag = true;
-        //         //console.log('туда');
-        //         this.cursorPositionX = e.touches[0].clientX - this.MARGIN;
-        //         this.cursorPositionY = this.realY(e.touches[0].clientY);
-        //     }
-        // }
-    },
-
-    onMove: function (e, gs) {
-        var x = 0,
-            y = 0,
-            shiftX = 0,//Math.abs(this.cursorPositionX - x),
-            shiftY = 0,//Math.abs(this.cursorPositionY - y);
-            finX = 0,
-            finY = 0;
-
-        if (e.type === 'mousemove') {
-            if (this.mouseFlag) {
-                //console.log('x: ' + e.clientX - 50 + 'y: ' + gs.realY(e.clientY));
-                // x = e.clientX;
-                // y = gs.realY(e.clientY);
-                // console.log(x, y);
-                // shiftX = /*gs.pxToTime*/Math.abs(this.cursorPositionX - x);
-                // shiftY = /*gs.pxToPrice*/Math.abs(this.cursorPositionY - y);
-                // console.log(shiftX, shiftY)
-                // if( shiftX > 10 && shiftY > 10) {
-                //     console.log('if')
-                //     shiftX = gs.pxToTime(Math.abs(this.cursorPositionX - x));
-                //     shiftY = gs.pxToPrice(Math.abs(this.cursorPositionY - y));
-                //     this.onDragged(shiftX, shiftY);
-                // }
-                x = e.clientX;
-                y = gs.realY(e.clientY);
-                shiftX += Math.abs(this.cursorPositionX - x);
-                shiftY += Math.abs(this.cursorPositionY - y);
-                if (shiftX > 10 && shiftY > 10) {
-                    finX = gs.pxToTime(this.cursorPositionX - x);
-                    finY = gs.pxToPrice(this.cursorPositionY - y);
-                    console.log(finX, finY);
-                    this.onDragged(finX, finY);
-                }
-            }
-        }
-        // else if (e.type === 'touchmove') {
-        //     if (this.mouseFlag) {
-        //         //console.log('x: ' + (e.clientX - Graph.MARGIN) + 'y: ' + Graph.realY(e.clientY));
-        //         xMS = (e.touches[0].clientX - 50);
-        //         yUN = gs.realY(e.touches[0].clientY);
-        //         console.log(xMS, yUN);
-        //         this.dragGraph(xMS, yUN, gs);
-        //     }
-        // }
-    },
-
     //методы для обработки движения графика
     onDragged: function (x, y) {
-        //преобразование пикселей в нужные величины                                          //{transform_TS
-        //и создание объекта, хранящего параметры трансформации графика                      //Transform_Price
-        //Scale}
+        //создание объекта, хранящего параметры трансформации графика
+
         var TransformQuery = {};
-//     this.shiftX += Math.abs(this.cursorPositionX - x);
-        //     this.shiftY += Math.abs(this.cursorPositionY - y);
-        //     //console.log(Graph.shiftX,Graph.shiftY);
-        //     if (this.shiftX > 10 && this.shiftY > 10) {
-        //         gs.START_TS += (this.cursorPositionX - x) * gs.TIME_PER_PX;
-        //         gs.START_PRICE += (this.cursorPositionY - y) * gs.PRICE_PER_PX;
-        //         this.cursorPositionX = x;
-        //         this.cursorPositionY = y;
-        //         this.render();
-        //         this.shiftX = 0;
-        //         this.shiftY = 0;
         if (arguments.length === 2) {
             if (arguments[1] === 'left' || arguments[1] === 'right') {
                 TransformQuery.transform_TS = x;
@@ -452,17 +418,12 @@ Graph.prototype = {
                 TransformQuery.scale = false;
             }
         }
-
-        //  TransformQuery = {
-        //     transform_TS: false,
-        //     transform_Price: 0.45,
-        //     scale: false
-        // };
-
         this.transform(TransformQuery);
     },
 
+
     transform: function (q) {
+        console.log(q);
         if (q.transform_TS) {
             this.GraphSettings.START_TS += q.transform_TS;
         }
@@ -513,7 +474,7 @@ FootPrintGraph.prototype.getSprites = function (f) {
     //      f(candleSprites);
     // )
 
-    var Sprites = [new CircleSprite(300, 10, 32), new CircleSprite(600, 20, 98), new RectangleSprite(300, 50, 60, 40), new RectangleSprite(4050, 70, 50, 50)];//new RectangleSprite(150, 150, 50, 50)
+    var Sprites = [new CircleSprite(1505723122670, 10, 32), new CircleSprite(1505723122670, 20, 98), new RectangleSprite(1505723122670, 20, 60, 40), new RectangleSprite(1505723122670, 20, 50, 50)];//new RectangleSprite(150, 150, 50, 50)
     f(Sprites);
 };
 
@@ -565,20 +526,20 @@ CircleSprite.prototype = {
     , isVisible: function (gs) {
         var x_visible = ((this.X + this.r * gs.TIME_PER_PX >= gs.START_TS) && (this.X - this.r * gs.TIME_PER_PX <= gs.getBorderTS()));
         var y_visible = ((this.Y + this.r * gs.PRICE_PER_PX >= gs.START_PRICE) && (this.Y - this.r * gs.PRICE_PER_PX <= gs.getBorderPrice()));
-        //console.log('x_visible: ' + x_visible);
-        //console.log('y_visible: ' + y_visible);
+        // console.log('x_visible: ' + x_visible);
+        // console.log('y_visible: ' + y_visible);
 
         return x_visible && y_visible;
     }
 
     , render: function (ctx, gs) {
 
-        var _x = gs.getXCoordForTS(this.X) + 0.5;
-        var _y = gs.getYCoordForPrice(this.Y) + 0.5;
+        var _x = gs.getXCoordForTS(this.X);
+        var _y = gs.getYCoordForPrice(this.Y);
 
         ctx.strokeStyle = 'red';
         ctx.beginPath();
-        ctx.arc(_x, _y, this.r + 0.5, 0, Math.PI * 2);
+        ctx.arc(_x, _y, this.r, 0, Math.PI * 2);
         ctx.stroke();
 
 
@@ -607,16 +568,16 @@ RectangleSprite.prototype = {
     isVisible: function (gs) {
         var x_visible = ((this.X + (this.width * gs.TIME_PER_PX) >= gs.START_TS) && (this.X <= gs.getBorderTS()));
         var y_visible = ((this.Y + (this.height * gs.PRICE_PER_PX) >= gs.START_PRICE) && (this.Y <= gs.getBorderPrice()));
-        //console.log('x_visible: ' + x_visible);
-        //console.log('y_visible: ' + y_visible);
+        // console.log('x_visible: ' + x_visible);
+        // console.log('y_visible: ' + y_visible);
 
         return x_visible && y_visible;
     },
 
     render: function (ctx, gs) {
 
-        var _x = gs.getXCoordForTS(this.X) + 0.5;
-        var _y = gs.getYCoordForPrice(this.Y) + 0.5;
+        var _x = gs.getXCoordForTS(this.X);
+        var _y = gs.getYCoordForPrice(this.Y);
 
         ctx.strokeStyle = "green";
         ctx.strokeRect(_x, _y, this.width, this.height);
@@ -628,41 +589,41 @@ RectangleSprite.prototype = {
             this.render(ctx, gs);
         }
         else {
-            //console.log('nonVisible');
+            // console.log('nonVisible');
         }
     }
 };
 
 
-var GraphSettings = function (start_ts, start_price, scale, price_step, speed_of_moving_graph, width, height, time_per_px, price_per_px, timeframe, price_points, min_px_per_detailed_candle, right_ident, bottom_ident, step_x, step_y) {
+var GraphSettings = function (start_ts, start_price, scale, /*price_step,*/ speed_of_moving_graph, width, height, time_per_px, time_step, price_per_px, price_step, timeframe, price_points, min_px_per_detailed_candle) {
 
     this.START_TS = start_ts;
     this.START_PRICE = start_price;
     this.SCALE = scale;
-    this.PRICE_STEP = price_step;
+    //this.PRICE_STEP = price_step; //для отрисовки свечи детально
     this.SPEED_OF_MOVING_GRAPH = speed_of_moving_graph;
-    this.WIDTH = width; //ширина канваса
-    this.HEIGHT = height; //высота канваса
+    this.WIDTH = width;
+    this.HEIGHT = height;
     this.TIME_PER_PX = time_per_px;
+    this.TIME_STEP = time_step;
     this.PRICE_PER_PX = price_per_px;
+    this.PRICE_STEP = price_step;
     this.TIMEFRAME = timeframe;
     this.PRICE_POINTS = price_points;
     this.MIN_PX_PER_DETEILED_CANDLE = min_px_per_detailed_candle;
-    this.RIGHT_INDENT = right_ident;
-    this.BOTTOM_INDENT = bottom_ident;
-    this.STEP_X = step_x;
-    this.STEP_Y = step_y;
-
+    this.RIGHT_INDENT = 80;
+    this.BOTTOM_INDENT = 40;
+    this.PERFECT_PX = 0.5; //для резкозти
 };
 
 GraphSettings.prototype = {
     constructor: GraphSettings
     , getBorderTS: function () {
-        return this.START_TS + (this.WIDTH - this.RIGHT_INDENT) * this.TIME_PER_PX;
+        return this.START_TS + this.WIDTH * this.TIME_PER_PX;
     }
 
     , getBorderPrice: function () {
-        return this.START_PRICE + (this.HEIGHT - this.BOTTOM_INDENT) * this.PRICE_PER_PX;
+        return this.START_PRICE + this.HEIGHT * this.PRICE_PER_PX;
     }
 
     , getXCoordForTS: function (n) {
@@ -670,38 +631,49 @@ GraphSettings.prototype = {
     }
 
     , getYCoordForPrice: function (n) {
-        return (n - this.START_PRICE) / this.PRICE_PER_PX;
+        return this.HEIGHT - ((n - this.START_PRICE) / this.PRICE_PER_PX);
     }
 
     , realY: function (y) {
         return this.HEIGHT - this.BOTTOM_INDENT - y;
     }
 
-    , calcStepX: function () {
-        // var indent = (this.WIDTH - this.RIGHT_INDENT) % this.STEP_X;
-        // return this.WIDTH - this.RIGHT_INDENT - indent - 0.5;
-        var indent = Math.abs((this.START_TS % (this.TIME_PER_PX * this.STEP_X)) / this.TIME_PER_PX);
-        if (this.START_TS > 0) {
-            indent = this.STEP_X - indent - 0.5;
+    , realX: function (x) {
+        return this.WIDTH - x - this.RIGHT_INDENT;
+    }
+
+    , calculateIndentOnX: function () {
+        var indent = this.TIME_STEP - (this.START_TS % (this.TIME_PER_PX * this.TIME_STEP)) / this.TIME_PER_PX;
+        if (this.START_TS < 0) {
+            indent = this.TIME_STEP - indent;
         }
         else {
-            indent -= 0.5;
+            indent = Math.abs(this.TIME_STEP - indent);
         }
         return indent;
     }
 
-    , calcStepY: function () {
-        // var indent = (this.HEIGHT - this.BOTTOM_INDENT) % this.STEP_Y - 0.5;
-        // console.log(this.realY(indent));
-        // return this.realY(indent);
-        var indent = Math.abs((this.START_PRICE % (this.PRICE_PER_PX * this.STEP_Y)) / this.PRICE_PER_PX);
-        if (this.START_PRICE > 0) {
-            indent = this.STEP_Y - indent - 0.5;
-        }
-        else {
-            indent -= 0.5;
-        }
-        return indent;
+    // Returns size of small interval behind the first grid line in PIXELS
+    , calculateIndentOnY: function () {
+
+        var priceUnitsInOneGridMark = this.PRICE_PER_PX * this.PRICE_STEP;
+        var startPrice = this.START_PRICE;
+
+        var priceUnitsInSmallInterval = (startPrice >=0 )  ? startPrice % priceUnitsInOneGridMark : ( priceUnitsInOneGridMark + startPrice % priceUnitsInOneGridMark);
+
+
+        var smallIntervalPriceUnits =  (priceUnitsInOneGridMark - (priceUnitsInSmallInterval) ) ;
+        var smallIntervalPixels =  smallIntervalPriceUnits/this.PRICE_PER_PX;
+        smallIntervalPixels = (smallIntervalPixels >=0) ? smallIntervalPixels : (smallIntervalPixels+this.PRICE_STEP);
+
+
+        return smallIntervalPixels;
+
+        // var indent = Math.abs((this.START_PRICE % (this.PRICE_PER_PX * this.PRICE_STEP)) / this.PRICE_PER_PX);
+        // if (this.START_PRICE < 0) {
+        //     indent = this.PRICE_STEP - indent;
+        // }
+        // return indent;
     }
 
     , pxToTime: function (x) {
@@ -711,19 +683,4 @@ GraphSettings.prototype = {
     , pxToPrice: function (y) {
         return y * this.PRICE_PER_PX;
     }
-
-    // //вычисление первого отступа метки по ОX
-    // , calculateSectionsOnX: function () {
-    //     return ;
-    //     //return this.WIDTH - this.BOTTOM_IDENT -(this.STEP_X - (this.START_TS % (this.TIME_PER_PX * this.STEP_X)) / this.TIME_PER_PX);
-    // }
-    //
-    // //вычисление первого отступа метки по OY
-    // , calculateSectionsOnY: function () {
-    //     var s = Math.abs((this.START_PRICE % (this.PRICE_PER_PX * this.STEP_Y)) / this.PRICE_PER_PX);
-    //     if (this.START_PRICE > 0) {
-    //         s = this.STEP_Y - s;
-    //     }
-    //     return s;
-    // }
 };
