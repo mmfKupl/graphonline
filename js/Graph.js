@@ -30,7 +30,7 @@ Graph.prototype = {
     init: function (canvas) {
         console.log('init');
         this.GraphSettings = new GraphSettings(
-            /*start_ts*/                   0, //1505476421352, //1505394063539,
+            /*start_ts*/                   1505723122670,//1505476421352, //1505394063539,
             /*start_price*/                0,
             /*scale*/                      0,
             /*speed_of_moving_graph*/      1,
@@ -103,9 +103,7 @@ Graph.prototype = {
 
         var t = this;
 
-        this.drawAxes(t.tmpCtx, t.GraphSettings);//отрисовка осей
         this.drawGrid(t.tmpCtx, t.GraphSettings);//отрисовка сетки
-        this.drawGridMarks(t.tmpCtx, t.GraphSettings);//отрисовка меток на координатных осях
 
 
         //отрисовка графических эл-тов - т.е. вызов у каждого графического элемента своей функции отрисовки
@@ -125,6 +123,8 @@ Graph.prototype = {
             })
         });
 
+        this.drawAxes(t.tmpCtx, t.GraphSettings);//отрисовка осей
+        this.drawGridMarks(t.tmpCtx, t.GraphSettings);//отрисовка меток на координатных осях
 
     },
 
@@ -132,6 +132,9 @@ Graph.prototype = {
         var centerX = gs.realX(0);
         var centerY = gs.realY(0);
         var px = gs.PERFECT_PX;
+
+        ctx.fillStyle = '#ffffff';
+        ctx.fillRect(px, gs.HEIGHT - gs.BOTTOM_INDENT + px, gs.WIDTH - gs.RIGHT_INDENT, gs.BOTTOM_INDENT);   // Рисует закрашенный прямоугольник
 
         ctx.strokeStyle = '#000000';
         ctx.lineWidth = 1;
@@ -195,20 +198,26 @@ Graph.prototype = {
         ctx.font = '14px Arial';
         ctx.textAlign = 'center';
         ctx.textBaseline = 'middle';
-        cur_pos = gs.realY(gs.calculateIndentOnY()) + indentY;
+        cur_pos = gs.realY(gs.calculateIndentOnY()) - indentY;
+        if (gs.calculateIndentOnY() % stepY > indentY) {
+            cur_pos = gs.realY(gs.calculateIndentOnY()) + indentY - 2 * px;
+        }
         ctx.beginPath();
         while (cur_pos >= 0) {
-            ctx.moveTo(centerX, cur_pos);
+            ctx.moveTo(centerX + px, cur_pos);
             ctx.lineTo(coord_of_mark_X, cur_pos);
             cur_pos -= stepY;
         }
         ctx.stroke();
-        cur_pos = gs.realY(gs.calculateIndentOnY()) + indentY;
+
+        cur_pos = gs.realY(gs.calculateIndentOnY()) - indentY + 2 * px;
         coord_of_mark_X = gs.realX(-35.5);
         var price_per_step = gs.PRICE_STEP * gs.PRICE_PER_PX;
-        var price = -gs.START_PRICE + (gs.calculateIndentOnY() + indentY) * gs.PRICE_PER_PX - price_per_step;
-        console.log('indent: ' + gs.calculateIndentOnY());
-        console.log('start_price' + gs.START_PRICE);
+        var price = -gs.START_PRICE + (gs.calculateIndentOnY() + indentY) * gs.PRICE_PER_PX;
+        if (gs.calculateIndentOnY() % stepY > indentY) {
+            cur_pos = gs.realY(gs.calculateIndentOnY()) + indentY;
+            price = -gs.START_PRICE + (gs.calculateIndentOnY() - indentY) * gs.PRICE_PER_PX;
+        }
         var str = '';
         ctx.beginPath();
         while (cur_pos > 0) {
@@ -219,12 +228,13 @@ Graph.prototype = {
         }
         ctx.stroke();
 
-        ctx.fillStyle = '#ffffff';
-        ctx.fillRect(0.5, gs.HEIGHT - gs.BOTTOM_INDENT + 1, gs.WIDTH, gs.BOTTOM_INDENT + 0.5);   // Рисует закрашенный прямоугольник
 
         //отрисовка оси OX
         ctx.fillStyle = '#000000';
-        cur_pos = gs.realX(gs.calculateIndentOnX()) + indentX;
+        cur_pos = gs.realX(gs.calculateIndentOnX()) - indentX;
+        if (Math.abs(gs.calculateIndentOnX() % stepX) > indentX) {
+            cur_pos = gs.realX(gs.calculateIndentOnX()) + indentX - 2 * px;
+        }
         ctx.beginPath();
         while (cur_pos > 0) {
             ctx.moveTo(cur_pos, centerY);
@@ -232,11 +242,15 @@ Graph.prototype = {
             cur_pos -= stepX;
         }
         ctx.stroke();
-        cur_pos = gs.realX(gs.calculateIndentOnX()) + indentX; //координата для отрисовки метки
+        var ts = gs.TIME_STEP * gs.TIME_PER_PX; //в одном промежутке сколько милисекунд
+        cur_pos = gs.realX(gs.calculateIndentOnX()) - indentX; //координата для отрисовки метки
+        var time = (Math.abs(gs.calculateIndentOnX()) + Math.floor(indentX)) * gs.TIME_PER_PX; //время под первой меткой
+        if (Math.abs(gs.calculateIndentOnX() % stepX) > indentX) {
+            cur_pos = gs.realX(gs.calculateIndentOnX()) + indentX - 2 * px;
+            time = (gs.calculateIndentOnX() - Math.floor(indentX)) * gs.TIME_PER_PX;
+        }
         coord_of_mark_Y = gs.realY(-18.5);
         var start_ts = gs.START_TS;
-        var ts = gs.TIME_STEP * gs.TIME_PER_PX; //в одном промежутке сколько милисекунд
-        var time = (gs.calculateIndentOnX() + indentX) * gs.TIME_PER_PX - ts; //время под первой меткой
         var date;
         ctx.beginPath();
         while (cur_pos > 0) {
@@ -247,9 +261,6 @@ Graph.prototype = {
             time += ts;
         }
         ctx.stroke();
-
-        ctx.fillStyle = '#ffffff';
-        ctx.fillRect(centerX + 1, centerY, gs.RIGHT_INDENT, gs.BOTTOM_INDENT);   // Рисует закрашенный прямоугольник
 
     },
 
@@ -291,6 +302,38 @@ Graph.prototype = {
                 this.cursorPositionY = gs.realY(e.clientY);
             }
         }
+        else if (e.type === 'touchstart') {
+            if ((e.touches[0].clientX <= gs.WIDTH - gs.RIGHT_INDENT) && (e.touches[0].clientY <= gs.HEIGHT - gs.BOTTOM_INDENT)) {
+                Graph.mouseFlag = true;
+                Graph.cursorPositionX = gs.realX(e.touches[0].clientX);
+                Graph.cursorPositionY = gs.realY(e.touches[0].clientY);
+            }
+        }
+    },
+
+    //функция для обработчика событий при движении мыши
+    onMove: function (e, gs) {
+        var x = 0,
+            y = 0;
+        if (e.type === 'mousemove') {
+            if (this.mouseFlag) {
+                x = gs.realX(e.clientX);
+                y = gs.realY(e.clientY);
+
+                //преобразование разницы в координатах в нужную величину
+                var deltaXPrice = (this.cursorPositionX - x) * gs.PRICE_PER_PX;
+                var deltaYTime = (this.cursorPositionY - y) * gs.TIME_PER_PX;
+
+                this.onDragged(deltaXPrice, deltaYTime);
+            }
+        }
+        else if (e.type === 'touchmove') {
+            if (Graph.mouseFlag) {
+                x = gs.realX(e.touches[0].clientX);
+                y = gs.realY(e.touches[0].clientY);
+                this.onDragged(x, y);
+            }
+        }
     },
 
     //функция для обработчика событий при отпускании ЛКМ
@@ -300,20 +343,11 @@ Graph.prototype = {
             this.cursorPositionX = gs.realX(e.clientX);
             this.cursorPositionY = gs.realY(e.clientY);
         }
-    },
-
-    //функция для обработчика событий при движении мыши
-    onMove: function (e, gs) {
-        var xPrice = 0,
-            yTime = 0;
-        if (e.type === 'mousemove') {
-            if (this.mouseFlag) {
-                xPrice = gs.pxToPrice(gs.realX(e.clientX));
-                yTime =gs.pxToTime(gs.realY(e.clientY));
-                this.onDragged(xPrice, yTime);
-            }
+        else if (e.type === 'touchend') {
+            Graph.mouseFlag = false;
         }
     },
+
 
     transferImgData: function () {
         this.imgData = this.tmpCtx.getImageData(0, 0, this.GraphSettings.WIDTH, this.GraphSettings.HEIGHT);
@@ -352,6 +386,7 @@ Graph.prototype = {
 
 
     transform: function (q) {
+        console.log(q);
         if (q.transform_TS) {
             this.GraphSettings.START_TS += q.transform_TS;
         }
