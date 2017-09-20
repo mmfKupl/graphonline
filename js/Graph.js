@@ -116,12 +116,14 @@ Graph.prototype = {
         //     })
         // });
 
+        //
+        // App.CurrentGraph.getSprites(function (sprites) {
+        //     sprites.forEach(function (sprite) {
+        //         sprite.renderIfVisible(t.tmpCtx, t.GraphSettings);
+        //     })
+        // });
 
-        App.CurrentGraph.getSprites(function (sprites) {
-            sprites.forEach(function (sprite) {
-                sprite.renderIfVisible(t.tmpCtx, t.GraphSettings);
-            })
-        });
+        Data.Request.getDataFor(t.GraphSettings.START_TS, t.GraphSettings.OX_MS, t.GraphSettings.TIMEFRAME, null);
 
         this.drawAxes(t.tmpCtx, t.GraphSettings);//отрисовка осей
         this.drawGridMarks(t.tmpCtx, t.GraphSettings);//отрисовка меток на координатных осях
@@ -641,6 +643,7 @@ var GraphSettings = function (start_ts, start_price, scale, /*price_step,*/ spee
     this.RIGHT_INDENT = 80;
     this.BOTTOM_INDENT = 40;
     this.PERFECT_PX = 0.5; //для резкозти
+    this.OX_MS = (this.WIDTH-this.RIGHT_INDENT)*this.TIME_PER_PX;
 };
 
 GraphSettings.prototype = {
