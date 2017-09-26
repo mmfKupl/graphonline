@@ -618,7 +618,7 @@ Graph.prototype = {
     transform: function (q) {
         console.log(q);
         if (q.transform_TS) {
-            this.GraphSettings.START_TS -= q.transform_TS;
+            this.GraphSettings.START_TS += q.transform_TS;
         }
         if (q.transform_Price) {
             this.GraphSettings.START_PRICE += q.transform_Price;
