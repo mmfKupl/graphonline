@@ -27,6 +27,10 @@ Graph.prototype = {
 
     cursorPositionY: 0,
 
+    buttonZoomPlus: null,
+
+    buttonZoomMinus: null,
+
     init: function (canvas) {
         console.log('init');
         this.GraphSettings = new GraphSettings(
@@ -67,10 +71,20 @@ Graph.prototype = {
         this.Canvas.addEventListener('wheel', function (e) {
             this.onZoom(e, this.GraphSettings);
         }.bind(this));
+        this.buttonZoomPlus.addEventListener('click', function (e) {
+            this.zoomIn(e, this.GraphSettings);
+        }.bind(this));
+        this.buttonZoomMinus.addEventListener('click', function (e) {
+            this.zoomOut(e, this.GraphSettings);
+        }.bind(this))
     },
 
     getDimensions: function () {
         console.log('getDim');
+        var zoomPlus = document.getElementsByClassName('bottom-item-first')[0];
+        var zoomMinus = document.getElementsByClassName('bottom-item-second')[0];
+        this.buttonZoomPlus = zoomPlus;
+        this.buttonZoomMinus = zoomMinus;
         var div = document.getElementsByClassName('graph')[0];
         var styles = getComputedStyle(div);
         this.Canvas.height = parseInt(styles.height);
@@ -560,9 +574,9 @@ Graph.prototype = {
         }
     },
 
-    zoomOnButton: function (e, gs) {
-        var max = 20; //максимальный зум
-    },
+    // zoomOnButton: function (e, gs) {
+    //     var max = 20; //максимальный зум
+    // },
 
     zoomIn: function (e, gs, power) {
         var max = 20; //максимальный зум
@@ -577,7 +591,7 @@ Graph.prototype = {
         this.transform(TransformQuery);
     },
 
-    zoomOut: function (e, gs, power) {//КАКАЯ ТО ХУЕТА
+    zoomOut: function (e, gs, power) {
          var min = -20;
          var TransformQuery = {};
          console.log(gs.ZOOM, min);
