@@ -196,52 +196,52 @@ Graph.prototype = {
 
     drawXGridMarks: function (ctx, gs) {
         //НУЖНО ПЕРЕДЕЛАТЬ
+        // var px = gs.PERFECT_PX;
+        // var indentX = gs.TIME_STEP / 2 + px;
+        // var stepX = gs.TIME_STEP;
+        // var coord_of_mark_Y = Math.round(gs.realY(-8.5)); // координата конца метки по оси OY
+        // var centerY = gs.realY(0);
+        // var cur_pos = gs.realX(gs.calculateIndentOnX()) - indentX;
+        //
+        // ctx.lineWidth = 1;
+        // ctx.fillStyle = '#000000';
+        // ctx.font = '14px Arial';
+        // ctx.textAlign = 'center';
+        // ctx.textBaseline = 'middle';
+        //
+        //
+        // if (Math.abs(gs.calculateIndentOnX() % stepX) > indentX) {
+        //     cur_pos = gs.realX(gs.calculateIndentOnX()) + indentX - 2 * px;
+        // }
+        // ctx.beginPath();
+        // while (cur_pos > 0) {
+        //     ctx.moveTo(cur_pos, centerY);
+        //     ctx.lineTo(cur_pos, coord_of_mark_Y);
+        //     cur_pos -= stepX;
+        // }
+        // ctx.stroke();
+        // var ts = gs.TIME_STEP * gs.TIME_PER_PX; //в одном промежутке сколько милисекунд
+        // cur_pos = gs.realX(gs.calculateIndentOnX()) - indentX; //координата для отрисовки метки
+        // var time = (Math.abs(gs.calculateIndentOnX()) + Math.floor(indentX)) * gs.TIME_PER_PX; //время под первой меткой
+        // if (Math.abs(gs.calculateIndentOnX() % stepX) > indentX) {
+        //     cur_pos = gs.realX(gs.calculateIndentOnX()) + indentX - 2 * px;
+        //     time = (gs.calculateIndentOnX() - Math.floor(indentX)) * gs.TIME_PER_PX;
+        // }
+        // coord_of_mark_Y = gs.realY(-18.5);
+        // var start_ts = gs.START_TS;
+        // var date;
+        // ctx.beginPath();
+        // var str = "";
+        // while (cur_pos > 0) {
+        //     date = new Date(start_ts - time);
+        //     str = date.getHours() + ':' + date.getMinutes() + ':' + date.getSeconds();
+        //     ctx.fillText(str, cur_pos, coord_of_mark_Y);
+        //     cur_pos -= stepX;
+        //     time += ts;
+        // }
+        // ctx.stroke();
+
         var px = gs.PERFECT_PX;
-        var indentX = gs.TIME_STEP / 2 + px;
-        var stepX = gs.TIME_STEP;
-        var coord_of_mark_Y = Math.round(gs.realY(-8.5)); // координата конца метки по оси OY
-        var centerY = gs.realY(0);
-        var cur_pos = gs.realX(gs.calculateIndentOnX()) - indentX;
-
-        ctx.lineWidth = 1;
-        ctx.fillStyle = '#000000';
-        ctx.font = '14px Arial';
-        ctx.textAlign = 'center';
-        ctx.textBaseline = 'middle';
-
-
-        if (Math.abs(gs.calculateIndentOnX() % stepX) > indentX) {
-            cur_pos = gs.realX(gs.calculateIndentOnX()) + indentX - 2 * px;
-        }
-        ctx.beginPath();
-        while (cur_pos > 0) {
-            ctx.moveTo(cur_pos, centerY);
-            ctx.lineTo(cur_pos, coord_of_mark_Y);
-            cur_pos -= stepX;
-        }
-        ctx.stroke();
-        var ts = gs.TIME_STEP * gs.TIME_PER_PX; //в одном промежутке сколько милисекунд
-        cur_pos = gs.realX(gs.calculateIndentOnX()) - indentX; //координата для отрисовки метки
-        var time = (Math.abs(gs.calculateIndentOnX()) + Math.floor(indentX)) * gs.TIME_PER_PX; //время под первой меткой
-        if (Math.abs(gs.calculateIndentOnX() % stepX) > indentX) {
-            cur_pos = gs.realX(gs.calculateIndentOnX()) + indentX - 2 * px;
-            time = (gs.calculateIndentOnX() - Math.floor(indentX)) * gs.TIME_PER_PX;
-        }
-        coord_of_mark_Y = gs.realY(-18.5);
-        var start_ts = gs.START_TS;
-        var date;
-        ctx.beginPath();
-        var str = "";
-        while (cur_pos > 0) {
-            date = new Date(start_ts - time);
-            str = date.getHours() + ':' + date.getMinutes() + ':' + date.getSeconds();
-            ctx.fillText(str, cur_pos, coord_of_mark_Y);
-            cur_pos -= stepX;
-            time += ts;
-        }
-        ctx.stroke();
-
-        /*var px = gs.PERFECT_PX;
         var timePerPixel = gs.TIME_PER_PX;
         var pixelsPerGridMark = gs.TIME_STEP;
         var startTime = gs.START_TS;
@@ -252,7 +252,7 @@ Graph.prototype = {
             (startTime + timeUnitsInGridMark - startTime % timeUnitsInGridMark)
             : startTime + timeUnitsInGridMark;
 
-        if(startTime < 0) {
+        if (startTime < 0) {
             firstGridMarkTime -= timeUnitsInGridMark;
         }
         var smallIntervalPixelsWidth = gs.calculateIndentOnX();
@@ -266,17 +266,18 @@ Graph.prototype = {
         var currentW = gs.RIGHT_INDENT + smallIntervalPixelsWidth;
         var currentGridMarkTime = firstGridMarkTime;
         var centerY = gs.realY(0);
-        var coord_of_mark_Y = gs.realY(-18.5);
+        var coord_of_mark_Y = gs.realY(-8.5);
         ctx.beginPath();
         while (currentW < gs.WIDTH) {
             var xCoord = gs.WIDTH - currentW;
-            var yCoord = gs.HEIGHT - gs.BOTTOM_INDENT + 10;
+            var yCoord = gs.HEIGHT - gs.BOTTOM_INDENT + 18.5;
             ctx.moveTo(xCoord + px, centerY + px);
-            ctx.lineTo(xCoord + px, coord_of_mark_Y);
+            ctx.lineTo(xCoord + px, coord_of_mark_Y + px);
+            ctx.fillText(currentGridMarkTime, xCoord + px, yCoord);
             currentW += pixelsPerGridMark;
             currentGridMarkTime += timeUnitsInGridMark;
         }
-        ctx.stroke();*/
+        ctx.stroke();
     },
 
     drawYGridMarks: function (ctx, gs) {
@@ -312,7 +313,7 @@ Graph.prototype = {
             var yCoord = gs.HEIGHT - currentH;
             ctx.moveTo(centerX + px, yCoord + px);
             ctx.lineTo(coord_of_mark_X, yCoord + px);
-            ctx.fillText(currentGridMarkPrice.toFixed(4), xCoord, yCoord);
+            ctx.fillText(currentGridMarkPrice.toFixed(4), xCoord + px, yCoord + px);
             //console.log(currentGridMarkPrice, xCoord, yCoord);
             currentH += pixelsPerGridMark;
             currentGridMarkPrice += priceUnitsInGridMark;
@@ -823,7 +824,7 @@ GraphSettings.prototype = {
     }
 
     , getXCoordForTS: function (n) {
-        return (n - this.START_TS) / this.TIME_PER_PX;
+        return this.WIDTH - (n - this.START_TS) / this.TIME_PER_PX;
     }
 
     , getYCoordForPrice: function (n) {
@@ -839,28 +840,29 @@ GraphSettings.prototype = {
     }
 
     , calculateIndentOnX: function () {
-/*
+
         var timeUnitsInOneGridMark = this.TIME_PER_PX * this.TIME_STEP;
         var startTime = this.START_TS;
 
         var timeUnitsInSmallInterval = (startTime >= 0) ? startTime % timeUnitsInOneGridMark : ( timeUnitsInOneGridMark + startTime % timeUnitsInOneGridMark);
-
+        console.log(timeUnitsInSmallInterval);
 
         var smallIntervalTimeUnits = (timeUnitsInOneGridMark - (timeUnitsInSmallInterval));
-        var smallInervalPixels = timeUnitsInOneGridMark / this.TIME_PER_PX;
-        smallInervalPixels = (smallInervalPixels >= 0) ? smallInervalPixels : (smallInervalPixels + this.TIME_STEP);
+        var smallIntervalPixels = smallIntervalTimeUnits / this.TIME_PER_PX;
+        smallIntervalPixels = (smallIntervalPixels >= 0) ? smallIntervalPixels : (smallIntervalPixels + this.TIME_STEP);
+        console.log(smallIntervalPixels);
 
-        return smallInervalPixels;
+        return smallIntervalPixels;
 
-*/
-        var indent = this.TIME_STEP - (this.START_TS % (this.TIME_PER_PX * this.TIME_STEP)) / this.TIME_PER_PX;
-        if (this.START_TS < 0) {
-            indent = this.TIME_STEP - indent;
-        }
-        else {
-            indent = Math.abs(this.TIME_STEP - indent);
-        }
-        return indent;
+
+        // var indent = this.TIME_STEP - (this.START_TS % (this.TIME_PER_PX * this.TIME_STEP)) / this.TIME_PER_PX;
+        // if (this.START_TS < 0) {
+        //     indent = this.TIME_STEP - indent;
+        // }
+        // else {
+        //     indent = Math.abs(this.TIME_STEP - indent);
+        // }
+        // return indent;
     }
 
     // Returns size of small interval behind the first grid line in PIXELS
@@ -875,7 +877,7 @@ GraphSettings.prototype = {
         var smallIntervalPriceUnits = (priceUnitsInOneGridMark - (priceUnitsInSmallInterval) );
         var smallIntervalPixels = smallIntervalPriceUnits / this.PRICE_PER_PX;
         smallIntervalPixels = (smallIntervalPixels >= 0) ? smallIntervalPixels : (smallIntervalPixels + this.PRICE_STEP);
-
+        console.log(smallIntervalPixels);
 
         return smallIntervalPixels;
 
