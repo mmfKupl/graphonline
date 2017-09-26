@@ -30,9 +30,9 @@ Graph.prototype = {
     init: function (canvas) {
         console.log('init');
         this.GraphSettings = new GraphSettings(
-            /*start_ts*/                   1505723122670,//1505476421352, //1505394063539,
-            /*start_price*/                0,
-            /*scale*/                      0,
+            /*start_ts*/                   1505721990000,//1505723122670,//1505476421352, //1505394063539,
+            /*start_price*/                5,
+            /*zoom*/                       1,
             /*speed_of_moving_graph*/      5,
             /*width*/                      0,
             /*height*/                     0,
@@ -61,7 +61,11 @@ Graph.prototype = {
             this.onDown(e, this.GraphSettings);
         }.bind(this));
         this.Canvas.addEventListener('mousemove', function (e) {
+            //this.drawDashedLine(this.tmpCtx, this.GraphSettings, e);
             this.onMove(e, this.GraphSettings);
+        }.bind(this));
+        this.Canvas.addEventListener('wheel', function (e) {
+            this.onZoom(e, this.GraphSettings);
         }.bind(this));
     },
 
@@ -116,17 +120,20 @@ Graph.prototype = {
         //     })
         // });
 
-        //
-        // App.CurrentGraph.getSprites(function (sprites) {
-        //     sprites.forEach(function (sprite) {
-        //         sprite.renderIfVisible(t.tmpCtx, t.GraphSettings);
-        //     })
-        // });
 
-        Data.Request.getDataFor(t.GraphSettings.START_TS, t.GraphSettings.OX_MS, t.GraphSettings.TIMEFRAME, null);
+        App.CurrentGraph.getSprites(function (sprites) {
+            sprites.forEach(function (sprite) {
+                sprite.renderIfVisible(t.tmpCtx, t.GraphSettings);
+            })
+        });
+
+        //Data.Request.getDataFor(t.GraphSettings.START_TS, t.GraphSettings.OX_MS, t.GraphSettings.TIMEFRAME, null);
 
         this.drawAxes(t.tmpCtx, t.GraphSettings);//отрисовка осей
         this.drawGridMarks(t.tmpCtx, t.GraphSettings);//отрисовка меток на координатных осях
+        // this.Canvas.onmousemove = function (e) {
+        //     t.drawDashedLine(t.tmpCtx, t.GraphSettings, e);
+        // }
 
     },
 
@@ -160,6 +167,7 @@ Graph.prototype = {
         //отрисовка по ОХ
         ctx.beginPath();
         while (cur_pos > 0) {
+            //console.log(gs.calculateIndentOnX());
             ctx.moveTo(cur_pos, centerY);
             ctx.lineTo(cur_pos, 0);
             cur_pos -= stepX;
@@ -170,11 +178,11 @@ Graph.prototype = {
         ctx.fillRect(gs.WIDTH - gs.RIGHT_INDENT + 1, 0.5, gs.RIGHT_INDENT, gs.HEIGHT);   // Рисует закрашенный прямоугольник ЗАЧЕМ???
 
         //отрисовка по OY
-        cur_pos = gs.realY(gs.calculateIndentOnY()); //
+        cur_pos = gs.realY(gs.calculateIndentOnY()) + px; //
         ctx.beginPath();
         while (cur_pos > 0) {
-            ctx.moveTo(centerX + px, cur_pos + px);
-            ctx.lineTo(px, cur_pos + px);
+            ctx.moveTo(centerX + px, cur_pos);
+            ctx.lineTo(px, cur_pos);
             cur_pos -= stepY;
         }
         ctx.stroke();
@@ -186,7 +194,8 @@ Graph.prototype = {
         this.drawXGridMarks(ctx, gs);
     },
 
-    drawXGridMarks: function (ctx, gs) { //НУЖНО ПЕРЕДЕЛАТЬ
+    drawXGridMarks: function (ctx, gs) {
+        //НУЖНО ПЕРЕДЕЛАТЬ
         var px = gs.PERFECT_PX;
         var indentX = gs.TIME_STEP / 2 + px;
         var stepX = gs.TIME_STEP;
@@ -231,6 +240,43 @@ Graph.prototype = {
             time += ts;
         }
         ctx.stroke();
+
+        /*var px = gs.PERFECT_PX;
+        var timePerPixel = gs.TIME_PER_PX;
+        var pixelsPerGridMark = gs.TIME_STEP;
+        var startTime = gs.START_TS;
+
+        var timeUnitsInGridMark = pixelsPerGridMark * timePerPixel;
+
+        var firstGridMarkTime = (startTime % timeUnitsInGridMark) ?
+            (startTime + timeUnitsInGridMark - startTime % timeUnitsInGridMark)
+            : startTime + timeUnitsInGridMark;
+
+        if(startTime < 0) {
+            firstGridMarkTime -= timeUnitsInGridMark;
+        }
+        var smallIntervalPixelsWidth = gs.calculateIndentOnX();
+
+        ctx.lineWidth = 1;
+        ctx.fill = '#000000';
+        ctx.font = '14px Arial';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+
+        var currentW = gs.RIGHT_INDENT + smallIntervalPixelsWidth;
+        var currentGridMarkTime = firstGridMarkTime;
+        var centerY = gs.realY(0);
+        var coord_of_mark_Y = gs.realY(-18.5);
+        ctx.beginPath();
+        while (currentW < gs.WIDTH) {
+            var xCoord = gs.WIDTH - currentW;
+            var yCoord = gs.HEIGHT - gs.BOTTOM_INDENT + 10;
+            ctx.moveTo(xCoord + px, centerY + px);
+            ctx.lineTo(xCoord + px, coord_of_mark_Y);
+            currentW += pixelsPerGridMark;
+            currentGridMarkTime += timeUnitsInGridMark;
+        }
+        ctx.stroke();*/
     },
 
     drawYGridMarks: function (ctx, gs) {
@@ -303,6 +349,25 @@ Graph.prototype = {
         // ctx.stroke();
     },
 
+    drawDashedLine: function (ctx, gs, e) {
+        this.drawXDashedLine(ctx, gs, e);
+        this.drawYDashedLine(ctx, gs, e);
+    },
+
+    drawXDashedLine: function (ctx, gs, e) {
+        // console.log('line');
+        // ctx.lineWidth = 2;
+        // ctx.beginPath();
+        // // ctx.moveTo(0, e.clientY);
+        // // ctx.lineTo(this.WIDTH, e.clientY);
+        // ctx.
+        // ctx.stroke();
+    },
+
+    drawYDashedLine: function (ctx, gs, e) {
+
+    },
+
     dragByButtons: function (e, gs) {
         var left = 37,
             up = 38,
@@ -360,6 +425,7 @@ Graph.prototype = {
 
     //функция для обработчика событий при движении мыши
     onMove: function (e, gs) {
+        // this.drawDashedLine(this.tmpCtx, gs, e);//отрисовка штриховой линии по курсору
         var x = 0, y = 0, deltaX = 0, deltaY = 0;
         if (this.mouseFlag) {
             console.log('move', '(' + gs.realX(e.clientX - 50) + ', ' + gs.realY(e.clientY) + ');');
@@ -442,10 +508,95 @@ Graph.prototype = {
                 console.log('x = ' + x, 'y = ' + y);
                 TransformQuery.transform_TS = x;
                 TransformQuery.transform_Price = y;
-                TransformQuery.scale = false;
+                TransformQuery.zoom = false;
             }
         }
         this.transform(TransformQuery);
+    },
+
+    onZoom: function (e, gs) {
+        var plus = 107, //клавиша + на нумпаде
+            plusS = 187, //клавиша =
+            minus = 109, //клавиша - на нумпаде
+            minusS = 189, //клавиша -
+            power = 1.1, //степень зума
+            key = (e.deltaY) ? e.type : e.keyCode;
+        key = (!key) ? e.type : key;
+
+        switch (key) {
+            // case plus :
+            // case plusS :
+            //     console.log(e)
+            //
+            //     this.zoomIn(e, gs, power, PPP, stepPPP);
+            //     break;
+            // case minus :
+            // case minusS :
+            //     console.log(e)
+            //
+            //     this.zoomOut(e, gs, power, PPP, stepPPP);
+            //     break;
+            case 'wheel' :
+                if (e.deltaY < 0) {
+                    console.log(e);
+                    this.zoomOnWheel(e, gs, power, 'in');
+                }
+                else if (e.deltaY > 0) {
+                    console.log(e);
+                    this.zoomOnWheel(e, gs, power, 'out');
+                }
+                break;
+        }
+    },
+
+    zoomOnWheel: function (e, gs, power, flag) {
+        var max = 3; //максимальный зум
+        if (flag === 'in') {
+            this.zoomIn(e, gs, power);
+        }
+        else if (flag === 'out') {
+            this.zoomOut(e, gs, power);
+        }
+    },
+
+    zoomOnButton: function (e, gs) {
+        var max = 20; //максимальный зум
+    },
+
+    zoomIn: function (e, gs, power) {
+        var max = 20; //максимальный зум
+        var TransformQuery = {};
+        TransformQuery.zoom = (gs.ZOOM < max) ? gs.ZOOM + 1 : gs.ZOOM;
+        console.log(power, -TransformQuery.zoom, gs.FIXED_TIME_PER_PX);
+        TransformQuery.transform_TIME_PER_PX = Math.pow(power, -TransformQuery.zoom) * gs.FIXED_TIME_PER_PX;
+        // TransformQuery.transform_PRICE_PER_PX = Math.round(Math.pow(power, -TransformQuery.zoom) * gs.FIXED_PRICE_PER_PX);
+        // TransformQuery.transform_TS = ;
+        // TransformQuery.transform_Price = ;
+        TransformQuery.speed = gs.SPEED_OF_MOVING_GRAPH + 0.1;
+        this.transform(TransformQuery);
+    },
+
+    zoomOut: function (e, gs, power) {//КАКАЯ ТО ХУЕТА
+        //  var min = -40;
+        //  var TransformQuery = {};
+        //  console.log(gs.ZOOM, min);
+        //  if(gs.ZOOM > min){
+        //      console.log(gs.ZOOM, TransformQuery.zoom);
+        //      TransformQuery.zoom = gs.ZOOM - 1.1;
+        //      console.log(TransformQuery.zoom);
+        //      if(TransformQuery.zoom){console.log('true')}
+        //  }
+        //  else {
+        //      TransformQuery.zoom = gs.ZOOM;
+        //  }
+        // // TransformQuery.zoom = (gs.ZOOM > min) ? (gs.ZOOM - 1) : gs.ZOOM;
+        //  console.log(power, TransformQuery.zoom, gs.FIXED_TIME_PER_PX);
+        //  TransformQuery.transform_TIME_PER_PX = Math.pow(power, TransformQuery.zoom) * gs.FIXED_TIME_PER_PX;
+        // // TransformQuery.transform_PRICE_PER_PX = Math.round(Math.pow(power, TransformQuery.zoom) * gs.FIXED_PRICE_PER_PX);
+        //  // TransformQuery.transform_TS = ;
+        //  // TransformQuery.transform_Price = ;
+        //  TransformQuery.speed = gs.SPEED_OF_MOVING_GRAPH - 0.1;
+        //  this.transform(TransformQuery);
     },
 
 
@@ -457,8 +608,17 @@ Graph.prototype = {
         if (q.transform_Price) {
             this.GraphSettings.START_PRICE += q.transform_Price;
         }
-        if (q.scale) {
-            this.GraphSettings.SCALE = q.scale;
+        if (q.zoom) {
+            this.GraphSettings.ZOOM = q.zoom;
+        }
+        if (q.speed) {
+            this.GraphSettings.SPEED_OF_MOVING_GRAPH = q.speed;
+        }
+        if (q.transform_TIME_PER_PX) {
+            this.GraphSettings.TIME_PER_PX = q.transform_TIME_PER_PX;
+        }
+        if (q.transform_PRICE_PER_PX) {
+            this.GraphSettings.PRICE_PER_PX = q.transform_PRICE_PER_PX;
         }
         this.render();
     },
@@ -467,8 +627,8 @@ Graph.prototype = {
         this.GraphSettings.START_TS = ts;
     },
 
-    setScale: function (scale) {
-        this.GraphSettings.SCALE = scale;
+    setZoom: function (zoom) {
+        this.GraphSettings.ZOOM = zoom;
     },
 
     setStartPrice: function (price) {
@@ -563,11 +723,12 @@ CircleSprite.prototype = {
 
         var _x = gs.getXCoordForTS(this.X);
         var _y = gs.getYCoordForPrice(this.Y);
+        var _r = this.r * Math.pow(gs.POWER_OF_GRAPH, gs.ZOOM);
 
         ctx.lineWidth = 1;
         ctx.strokeStyle = 'red';
         ctx.beginPath();
-        ctx.arc(_x, _y, this.r, 0, Math.PI * 2);
+        ctx.arc(_x, _y, _r, 0, Math.PI * 2);
         ctx.stroke();
 
 
@@ -607,9 +768,11 @@ RectangleSprite.prototype = {
         var _x = gs.getXCoordForTS(this.X);
         var _y = gs.getYCoordForPrice(this.Y);
 
+        var _width = this.width * Math.pow(gs.POWER_OF_GRAPH, gs.ZOOM);
+
         ctx.strokeStyle = "green";
         ctx.lineWidth = 1;
-        ctx.strokeRect(_x + 0.5, _y + 0.5, this.width, this.height);
+        ctx.strokeRect(_x + 0.5, _y + 0.5, _width, this.height);
 
     }
 
@@ -624,18 +787,20 @@ RectangleSprite.prototype = {
 };
 
 
-var GraphSettings = function (start_ts, start_price, scale, /*price_step,*/ speed_of_moving_graph, width, height, time_per_px, time_step, price_per_px, price_step, timeframe, price_points, min_px_per_detailed_candle) {
+var GraphSettings = function (start_ts, start_price, zoom, /*price_step,*/ speed_of_moving_graph, width, height, time_per_px, time_step, price_per_px, price_step, timeframe, price_points, min_px_per_detailed_candle) {
 
     this.START_TS = start_ts;
     this.START_PRICE = start_price;
-    this.SCALE = scale;
+    this.ZOOM = zoom;
     //this.PRICE_STEP = price_step; //для отрисовки свечи детально
     this.SPEED_OF_MOVING_GRAPH = speed_of_moving_graph;
     this.WIDTH = width;
     this.HEIGHT = height;
     this.TIME_PER_PX = time_per_px;
+    this.FIXED_TIME_PER_PX = 2500;
     this.TIME_STEP = time_step;
     this.PRICE_PER_PX = price_per_px;
+    this.FIXED_PRICE_PER_PX = 0.025;
     this.PRICE_STEP = price_step;
     this.TIMEFRAME = timeframe;
     this.PRICE_POINTS = price_points;
@@ -643,7 +808,8 @@ var GraphSettings = function (start_ts, start_price, scale, /*price_step,*/ spee
     this.RIGHT_INDENT = 80;
     this.BOTTOM_INDENT = 40;
     this.PERFECT_PX = 0.5; //для резкозти
-    this.OX_MS = (this.WIDTH-this.RIGHT_INDENT)*this.TIME_PER_PX;
+    this.OX_MS = (this.WIDTH - this.RIGHT_INDENT) * this.TIME_PER_PX;
+    this.POWER_OF_GRAPH = 1.1;
 };
 
 GraphSettings.prototype = {
@@ -673,6 +839,20 @@ GraphSettings.prototype = {
     }
 
     , calculateIndentOnX: function () {
+/*
+        var timeUnitsInOneGridMark = this.TIME_PER_PX * this.TIME_STEP;
+        var startTime = this.START_TS;
+
+        var timeUnitsInSmallInterval = (startTime >= 0) ? startTime % timeUnitsInOneGridMark : ( timeUnitsInOneGridMark + startTime % timeUnitsInOneGridMark);
+
+
+        var smallIntervalTimeUnits = (timeUnitsInOneGridMark - (timeUnitsInSmallInterval));
+        var smallInervalPixels = timeUnitsInOneGridMark / this.TIME_PER_PX;
+        smallInervalPixels = (smallInervalPixels >= 0) ? smallInervalPixels : (smallInervalPixels + this.TIME_STEP);
+
+        return smallInervalPixels;
+
+*/
         var indent = this.TIME_STEP - (this.START_TS % (this.TIME_PER_PX * this.TIME_STEP)) / this.TIME_PER_PX;
         if (this.START_TS < 0) {
             indent = this.TIME_STEP - indent;
