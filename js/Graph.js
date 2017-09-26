@@ -273,7 +273,7 @@ Graph.prototype = {
             var yCoord = gs.HEIGHT - gs.BOTTOM_INDENT + 18.5;
             ctx.moveTo(xCoord + px, centerY + px);
             ctx.lineTo(xCoord + px, coord_of_mark_Y + px);
-            ctx.fillText(currentGridMarkTime, xCoord + px, yCoord);
+            ctx.fillText(Math.round(currentGridMarkTime), xCoord + px, yCoord);
             currentW += pixelsPerGridMark;
             currentGridMarkTime += timeUnitsInGridMark;
         }
@@ -520,7 +520,7 @@ Graph.prototype = {
             plusS = 187, //клавиша =
             minus = 109, //клавиша - на нумпаде
             minusS = 189, //клавиша -
-            power = 1.1, //степень зума
+            power = 1.01, //степень зума
             key = (e.deltaY) ? e.type : e.keyCode;
         key = (!key) ? e.type : key;
 
@@ -539,11 +539,11 @@ Graph.prototype = {
             //     break;
             case 'wheel' :
                 if (e.deltaY < 0) {
-                    console.log(e);
+                    //console.log(e);
                     this.zoomOnWheel(e, gs, power, 'in');
                 }
                 else if (e.deltaY > 0) {
-                    console.log(e);
+                    //console.log(e);
                     this.zoomOnWheel(e, gs, power, 'out');
                 }
                 break;
@@ -551,7 +551,7 @@ Graph.prototype = {
     },
 
     zoomOnWheel: function (e, gs, power, flag) {
-        var max = 3; //максимальный зум
+        //var max = 3; //максимальный зум
         if (flag === 'in') {
             this.zoomIn(e, gs, power);
         }
@@ -567,9 +567,9 @@ Graph.prototype = {
     zoomIn: function (e, gs, power) {
         var max = 20; //максимальный зум
         var TransformQuery = {};
-        TransformQuery.zoom = (gs.ZOOM < max) ? gs.ZOOM + 1 : gs.ZOOM;
-        console.log(power, -TransformQuery.zoom, gs.FIXED_TIME_PER_PX);
-        TransformQuery.transform_TIME_PER_PX = Math.pow(power, -TransformQuery.zoom) * gs.FIXED_TIME_PER_PX;
+        TransformQuery.zoom = (gs.ZOOM < max) ? gs.ZOOM + 1.1 : gs.ZOOM;
+        //console.log(power, TransformQuery.zoom, gs.FIXED_TIME_PER_PX);
+        TransformQuery.transform_TIME_PER_PX = Math.pow(power, TransformQuery.zoom) * gs.FIXED_TIME_PER_PX;
         // TransformQuery.transform_PRICE_PER_PX = Math.round(Math.pow(power, -TransformQuery.zoom) * gs.FIXED_PRICE_PER_PX);
         // TransformQuery.transform_TS = ;
         // TransformQuery.transform_Price = ;
@@ -578,26 +578,26 @@ Graph.prototype = {
     },
 
     zoomOut: function (e, gs, power) {//КАКАЯ ТО ХУЕТА
-        //  var min = -40;
-        //  var TransformQuery = {};
-        //  console.log(gs.ZOOM, min);
-        //  if(gs.ZOOM > min){
-        //      console.log(gs.ZOOM, TransformQuery.zoom);
-        //      TransformQuery.zoom = gs.ZOOM - 1.1;
-        //      console.log(TransformQuery.zoom);
-        //      if(TransformQuery.zoom){console.log('true')}
-        //  }
-        //  else {
-        //      TransformQuery.zoom = gs.ZOOM;
-        //  }
-        // // TransformQuery.zoom = (gs.ZOOM > min) ? (gs.ZOOM - 1) : gs.ZOOM;
-        //  console.log(power, TransformQuery.zoom, gs.FIXED_TIME_PER_PX);
-        //  TransformQuery.transform_TIME_PER_PX = Math.pow(power, TransformQuery.zoom) * gs.FIXED_TIME_PER_PX;
-        // // TransformQuery.transform_PRICE_PER_PX = Math.round(Math.pow(power, TransformQuery.zoom) * gs.FIXED_PRICE_PER_PX);
-        //  // TransformQuery.transform_TS = ;
-        //  // TransformQuery.transform_Price = ;
-        //  TransformQuery.speed = gs.SPEED_OF_MOVING_GRAPH - 0.1;
-        //  this.transform(TransformQuery);
+         var min = -20;
+         var TransformQuery = {};
+         console.log(gs.ZOOM, min);
+         // if(gs.ZOOM > min){
+         //     console.log(gs.ZOOM, TransformQuery.zoom);
+         //     TransformQuery.zoom = gs.ZOOM - 1.1;
+         //     console.log(TransformQuery.zoom);
+         //     if(TransformQuery.zoom){console.log('true')}
+         // }
+         // else {
+         //     TransformQuery.zoom = gs.ZOOM;
+         // }
+        TransformQuery.zoom = (gs.ZOOM > min) ? (gs.ZOOM - 1.1) : gs.ZOOM;
+         console.log(power, TransformQuery.zoom, gs.FIXED_TIME_PER_PX);
+         TransformQuery.transform_TIME_PER_PX = Math.pow(power, TransformQuery.zoom) * gs.FIXED_TIME_PER_PX;
+        // TransformQuery.transform_PRICE_PER_PX = Math.round(Math.pow(power, TransformQuery.zoom) * gs.FIXED_PRICE_PER_PX);
+         // TransformQuery.transform_TS = ;
+         // TransformQuery.transform_Price = ;
+         TransformQuery.speed = gs.SPEED_OF_MOVING_GRAPH - 0.1;
+         this.transform(TransformQuery);
     },
 
 
